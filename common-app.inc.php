@@ -10,9 +10,16 @@ class StMarks_Smarty extends Smarty {
 		$this->setCacheDir($metadata['APP_PATH'] . '/smarty/cache');
 		$this->assign('metadata', $metadata);
 	}
+	
+	public function display($template, $cache_id = null, $compile_id = null, $parent = null) {
+		global $messages;
+		$this->assign('messages', $messages);
+		parent::display($template, $cache_id, $compile_id, $parent);
+	}
 }
 
 $smarty = new StMarks_Smarty();
+$messages = array();
 
 $api = new CanvasPest($metadata['CANVAS_API_URL'], $metadata['CANVAS_API_TOKEN']);
 

@@ -44,8 +44,72 @@ body, p, div {
 	text-decoration: underline;
 }
 
-#content {
+#messages {
+	overflow: hidden;
 	margin: 1em;
+	padding: 0;
+}
+
+#messages ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+#messages li {
+	float: left;
+	margin: 1em;
+	padding: 0.5em;
+	font-size: smaller;
+	background: #feb;
+	color: #a80;
+	border: solid 1px #a80;
+	border-radius: 0.5em;
+}
+
+#messages li.error {
+	background: #fee;
+	color: #a00;
+	border-color: #a00;
+}
+
+#messages .title {
+	font-weight: bold;
+}
+
+#content {
+	margin: 3em auto;
+	width: 40em;
+	max-width: 90%;
+}
+
+/* Forms formatting */
+label, input[type=file] {
+	display: block;
+	margin-top: 10px;
+}
+
+label .comment {
+	font-size: 8pt;
+	display: block;
+}
+
+input {
+	display: block;
+}
+
+input[type=file] {
+	width: 100%;
+	font-size: 8pt;
+	font-style: italic;
+}
+
+input[type=text] {
+	width: 100%;
+}
+
+input[type=radio], input[type=checkbox] {
+	display: inline;
 }
 
 #footer {

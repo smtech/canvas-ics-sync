@@ -11,8 +11,6 @@
 
 require_once('common.inc.php');
 
-define('TOOL_NAME_ABBREVIATION', 'ICS Import');
-
 define('VALUE_OVERWRITE_CANVAS_CALENDAR', 'overwrite');
 define('VALUE_ENABLE_REGEXP_FILTER', 'enable_filter');
 	
@@ -21,8 +19,6 @@ define('WARNING_SYNC', '<em>Warning:</em> The sync will not overwrite existing e
 ');
 
 define('WARNING_REGEXP_FILTER', '<em>Note:</em> The regular expression match is applied to the <em>title</em> of an event <em>only</em>, and the event must both match the include regular expression <em>and</em> not match the exclude regular expression to be included. Note also that the regular expressions are <em>case-sensitive</em>.');
-
-require_once(__DIR__ . '/common.inc.php');
 
 if (isset($argc)) {
 	$_REQUEST['cal'] = urldecode($argv[1]);
@@ -130,7 +126,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 		/* check ICS feed to be sure it exists */
 		if(urlExists($_REQUEST['cal'])) {
 			/* look up the canvas object -- mostly to make sure that it exists! */
-			if ($canvasObject = callCanvasApi(CANVAS_API_GET, $canvasContext['verification_url'])) {
+			if ($canvasObject = $api->get($canvasContext['verification_url'])) {
 			
 				/* calculate the unique pairing ID of this ICS feed and canvas object */
 				$pairingHash = getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
@@ -138,22 +134,15 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				debugFlag('START', getSyncTimestamp());
 			
 				/* tell users that it's started and to cool their jets */
-				displayPage('
+				$smarty->assign('content', '
 					<h3>Calendar Import Started</h3>
 					<p>The calendar import that you requested has begun. You may leave this page at anytime. You can see the progress of the import by visiting <a target="_blank" href="https://' . parse_url(CANVAS_API_URL, PHP_URL_HOST) . "/calendar?include_contexts={$canvasContext['context']}_{$canvasObject['id']}\">this calendar</a> in Canvas.</p>"
 				);
+				$smarty->display('page.tpl');
 				
 				/* use phpicalendar to parse the ICS feed into $master_array */
-				define('BASE', './phpicalendar/');
-				require_once(BASE . 'functions/date_functions.php');
-				require_once(BASE . 'functions/init.inc.php');
-				require_once(BASE . 'functions/ical_parser.php');
-				displayError(
-					$master_array,
-					false, null, null,
-					DEBUGGING_GENERAL
-				);
-			
+				$ics = new SG_iCalReader($_REQUEST['cal']);
+							
 				/* log this pairing in the database cache, if it doesn't already exist */
 				$calendarCacheResponse = mysqlQuery("
 					SELECT *
@@ -210,91 +199,82 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				/* walk through $master_array and update the Canvas calendar to match the
 				   ICS feed, caching changes in the database */
 				// TODO: would it be worth the performance improvement to just process things from today's date forward? (i.e. ignore old items, even if they've changed...)
-				foreach($master_array as $date => $times) {
-					if (date_create_from_format('Ymd', $date)) {
-						foreach($times as $time => $uids) {
-							foreach($uids as $uid => $event) {
-								/* urldecode all of the fields of the event, for easier processing! */
-								foreach ($event as $key => $value) {
-									$event[$key] = urldecode($value);
-								}
-															
-								/* does this event already exist in Canvas? */
-								$eventHash = getEventHash($date, $time, $uid, $event);
-								
-								/* filter event -- clean up formatting and check for regexp filtering */
-								$event = filterEvent($event, $calendarCache);
-	
-								/* if the event should be included... */
-								if ($event) {
-									
-									/* have we cached this event already? */
-									$eventCacheResponse = mysqlQuery("
-										SELECT *
-											FROM `events`
-											WHERE
-												`calendar` = '{$calendarCache['id']}' AND
-												`event_hash` = '$eventHash'
-									");
-									
+				foreach($ics->getEvents() as $event) {
+					/* urldecode all of the fields of the event, for easier processing! */
+					foreach ($event as $key => $value) {
+						$event[$key] = urldecode($value);
+					}
+												
+					/* does this event already exist in Canvas? */
+					$eventHash = getEventHash($date, $time, $uid, $event);
 					
-									/* if we already have the event cached in its current form, just update
-									   the timestamp */
-									$eventCache = $eventCacheResponse->fetch_assoc();
-									if (DEBUGGING & DEBUGGING_MYSQL) displayError($eventCache);
-									if ($eventCache) {
-										mysqlQuery("
-											UPDATE `events`
-												SET
-													`synced` = '" . getSyncTimestamp() . "'
-												WHERE
-													`id` = '{$eventCache['id']}'
-										");
-									
-									/* otherwise, add this new event and cache it */
-									} else {
-										/* multi-day event instance start times need to be changed to _this_ date */
-										$start = new DateTime("@{$event['start_unixtime']}");
-										$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-										$start->setDate(substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2));
-										
-										$end = new DateTime("@{$event['end_unixtime']}");
-										$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-										$end->setDate(substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2));
+					/* filter event -- clean up formatting and check for regexp filtering */
+					$event = filterEvent($event, $calendarCache);
+
+					/* if the event should be included... */
+					if ($event) {
+						
+						/* have we cached this event already? */
+						$eventCacheResponse = mysqlQuery("
+							SELECT *
+								FROM `events`
+								WHERE
+									`calendar` = '{$calendarCache['id']}' AND
+									`event_hash` = '$eventHash'
+						");
+						
 		
-										$calendarEvent = callCanvasApi(
-											CANVAS_API_POST,
-											"/calendar_events",
-											array(
-												'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
-												'calendar_event[title]' => $event['event_text'],
-												'calendar_event[description]' => $event['description'],
-												'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
-												'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
-												'calendar_event[location_name]' => $event['location']/*,
-												'as_user_id' => ($canvasContext['context'] == 'user' ? $canvasObject['id'] : '') // TODO: this feels skeevy -- like the empty string will break */
-											)
-										);
-										$icalEventJson = json_encode($event);
-										$calendarEventJson = json_encode($calendarEvent);
-										mysqlQuery("
-											INSERT INTO `events`
-												(
-													`calendar`,
-													`calendar_event[id]`,
-													`event_hash`,
-													`synced`
-												)
-												VALUES (
-													'{$calendarCache['id']}',
-													'{$calendarEvent['id']}',
-													'$eventHash',
-													'" . getSyncTimestamp() . "'
-												)
-										");
-									}
-								}
-							}
+						/* if we already have the event cached in its current form, just update
+						   the timestamp */
+						$eventCache = $eventCacheResponse->fetch_assoc();
+						if ($eventCache) {
+							mysqlQuery("
+								UPDATE `events`
+									SET
+										`synced` = '" . getSyncTimestamp() . "'
+									WHERE
+										`id` = '{$eventCache['id']}'
+							");
+						
+						/* otherwise, add this new event and cache it */
+						} else {
+							/* multi-day event instance start times need to be changed to _this_ date */
+							$start = new DateTime("@{$event['start_unixtime']}");
+							$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
+							$start->setDate(substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2));
+							
+							$end = new DateTime("@{$event['end_unixtime']}");
+							$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
+							$end->setDate(substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2));
+
+							$calendarEvent = $api->post("/calendar_events",
+								array(
+									'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
+									'calendar_event[title]' => $event['event_text'],
+									'calendar_event[description]' => $event['description'],
+									'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
+									'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
+									'calendar_event[location_name]' => $event['location']/*,
+									'as_user_id' => ($canvasContext['context'] == 'user' ? $canvasObject['id'] : '') // TODO: this feels skeevy -- like the empty string will break */
+								)
+							);
+							$icalEventJson = json_encode($event);
+							$calendarEventJson = json_encode($calendarEvent);
+							mysqlQuery("
+								INSERT INTO `events`
+									(
+										`calendar`,
+										`calendar_event[id]`,
+										`event_hash`,
+										`synced`
+									)
+									VALUES (
+										'{$calendarCache['id']}',
+										'{$calendarEvent['id']}',
+										'$eventHash',
+										'" . getSyncTimestamp() . "'
+									)
+							");
 						}
 					}
 				}
@@ -308,14 +288,12 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				");
 				while ($deletedEventCache = $deletedEventsResponse->fetch_assoc()) {
 					try {
-						$deletedEvent = callCanvasApi(
-							CANVAS_API_DELETE,
-							"/calendar_events/{$deletedEventCache['calendar_event[id]']}",
+						$deletedEvent = $api->delete("/calendar_events/{$deletedEventCache['calendar_event[id]']}",
 							array(
 								'cancel_reason' => getSyncTimestamp(),
 								'as_user_id' => ($canvasContext['context'] == 'user' ? $canvasObject['id'] : '') // TODO: this feels skeevy -- like the empty string will break
 							),
-							CANVAS_API_EXCEPTION_CLIENT
+							CANVAS_API_EXCEPTION_CLIENT // FIXME
 						);
 					} catch (Pest_Unauthorized $e) {
 						/* if the event has been deleted in Canvas, we'll get an error when
@@ -323,17 +301,18 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						   our cache database, however */
 						debugFlag("Cache out-of-sync: calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.");
 					} catch (Pest_ClientError $e) {
-						displayError(
-							array(
+						$messages[] = array(
+							'class' => 'error',
+							'title' => 'API Client Error',
+							'content' => '<pre>' . print_r(array(
 								'Status' => $PEST->lastStatus(),
 								'Error' => $PEST->lastBody(),
 								'Verb' => $verb,
 								'URL' => $url,
 								'Data' => $data
-							),
-							true,
-							'API Client Error'
+							), false) . '</pre>'
 						);
+						$smarty->display('page.tpl');
 						exit;
 					}
 					mysqlQuery("
@@ -463,32 +442,30 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				debugFlag('FINISH');
 				exit;
 			} else {
-				displayError(
-					array(
+				$messages[] = array(
+					'class' => 'error',
+					'title' => 'Canvas Object  Not Found',
+					'content' => 'The object whose URL you submitted could not be found.<pre>' . print_r(array(
 						'Canvas URL' => $_REQUEST['canvas_url'],
 						'Canvas Context' => $canvasContext,
 						'Canvas Object' => $canvasObject
-					),
-					true,
-					'Canvas Object  Not Found',
-					'The object whose URL you submitted could not be found.'
+					), false) . '</pre>'
 				);
 			}
 		} else {
-			displayError(
-				$_REQUEST['cal'],
-				false,
-				'ICS feed  Not Found',
-				'The calendar whose URL you submitted could not be found.'
+			$messages[] = array(
+				'class' => 'error',
+				'title' => 'ICS feed  Not Found',
+				'content' => 'The calendar whose URL you submitted could not be found.<pre>' . $_REQUEST['cal'] . '</pre>'
 			);
 		} 
 	} else {
-		displayError(
-			$_REQUEST['canvas_url'],
-			false,
-			'Invalid Canvas URL',
-			'The Canvas URL you submitted could not be parsed.'
+		$messages[] = array(
+			'class' => 'error',
+			'title' => 'Invalid Canvas URL',
+			'content' => 'The Canvas URL you submitted could not be parsed.<pre>' . $_REQUEST['canvas_url'] . '</pre>' 
 		);
+		$smarty->display('page.tpl');
 		exit;
 	}	
 } else {

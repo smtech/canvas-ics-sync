@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "59f35f4ca0912291a2b1af038916d797",
+    "hash": "32a7a3b45d2d4d12a44816b34ccf1953",
     "packages": [
         {
             "name": "battis/appmetadata",
@@ -209,16 +209,16 @@
         },
         {
             "name": "smtech/oauth-negotiator",
-            "version": "v1.0",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/smtech/oauth-negotiator.git",
-                "reference": "c64150d7906d7b92859b6f8f69d85363fee9ef16"
+                "reference": "e061d4cabd0d109d4c02ba362fb9b76630cc6cc9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smtech/oauth-negotiator/zipball/c64150d7906d7b92859b6f8f69d85363fee9ef16",
-                "reference": "c64150d7906d7b92859b6f8f69d85363fee9ef16",
+                "url": "https://api.github.com/repos/smtech/oauth-negotiator/zipball/e061d4cabd0d109d4c02ba362fb9b76630cc6cc9",
+                "reference": "e061d4cabd0d109d4c02ba362fb9b76630cc6cc9",
                 "shasum": ""
             },
             "require": {
@@ -233,7 +233,7 @@
                 }
             ],
             "description": "Negotiate an OAuth 2 authentication or API token",
-            "time": "2015-06-23 17:10:38"
+            "time": "2015-07-14 18:31:55"
         },
         {
             "name": "spvsoftwareproducts/LTI_Tool_Provider",

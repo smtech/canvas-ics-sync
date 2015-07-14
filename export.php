@@ -4,10 +4,10 @@ require_once('common.inc.php');
 
 if (isset($_REQUEST['course_url'])) {
 	$courseId = preg_replace('|.*/courses/(\d+)/?.*|', '$1', parse_url($_REQUEST['course_url'], PHP_URL_PATH));
-	$course = callCanvasApi('get', "/courses/$courseId");
+	$course = $api->get("/courses/$courseId");
 	if ($course) {
 		$webcalFeed = str_replace('https://', 'webcal://', $course['calendar']['ics']);
-		displayPage('
+		$smarty->assign('content', '
 		<h3>Course Calendar ICS Feed</h3>
 		<p>You can subscribe to the calendar for <a href="https://' .
 		parse_url(CANVAS_API_URL, PHP_URL_HOST) . '/courses/' . $courseId .
@@ -15,10 +15,12 @@ if (isset($_REQUEST['course_url'])) {
 		$webcalFeed . '">' . $webcalFeed .
 		'</a> in any calendar application that supports external ICS feeds.</p>'
 		);
-		exit;
 	} else {
-		displayError($json, false, 'Canvas API Error', 'The course you requested could not be accessed.');
-		exit;
+		$messages[] = array(
+			'class' => 'error',
+			'title' => 'Canvas API Error',
+			'content' => 'The course you requested could not be accessed.<pre>' . print_r($json, false) . '</pre>'
+		);
 	}
 } else {
 	$smarty->assign('content', '
@@ -28,7 +30,8 @@ if (isset($_REQUEST['course_url'])) {
 		<input type="submit" value="Generate ICS Feed" />
 	</form>
 	');
-	$smarty->display('page.tpl');
 }
+
+$smarty->display('page.tpl');
 
 ?>
