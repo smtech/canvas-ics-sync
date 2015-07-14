@@ -1,0 +1,58 @@
+body, p, div {
+	font-family: Helvetica, sans-serif;
+	font-size: 11pt;
+	font-weight: normal;
+	margin: 0px;
+	padding: 0px;
+}
+
+#header {
+	width: 100%;
+	background: url('https://skunkworks.stmarksschool.org/canvas/css/header-background.jpg') repeat-x scroll left center transparent;
+	height: 72px;
+	position: relative;
+}
+
+#header #header-logo {
+	background: url('https://skunkworks.stmarksschool.org/canvas/css/header-account-logo.png') no-repeat;
+	height: 70px;
+}
+
+#navigation-menu {
+	position: absolute;
+	left: 210px;
+	bottom: 1em;
+	list-style-type: none;
+	margin: auto;
+	padding: 0px;
+}
+
+#navigation-menu li {
+	float: left;
+	margin-right: 1em;
+}
+
+#navigation-menu a {
+	color: #fff;
+	padding: 1em;
+	text-decoration: none;
+}
+
+#navigation-menu a:hover {
+	color: #003359;
+	background: #fff;
+	text-decoration: underline;
+}
+
+#content {
+	margin: 1em;
+}
+
+#footer {
+	position: absolute;
+	bottom: 0;
+	background: #eee;
+	color: #999;
+	padding: 1em;
+	width: 100%;
+}

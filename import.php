@@ -9,12 +9,7 @@
 /* REQUIRES crontab
    http://en.wikipedia.org/wiki/Cron */
 
-require_once(__DIR__ . '/.ignore.calendar-ics-authentication.inc.php');
-require_once(__DIR__ . '/config.inc.php');
-
-require_once(APP_PATH . '/include/page-generator.inc.php');
-require_once(APP_PATH . '/include/canvas-api.inc.php');
-require_once(APP_PATH . '/include/mysql.inc.php');
+require_once('common.inc.php');
 
 define('TOOL_NAME_ABBREVIATION', 'ICS Import');
 
@@ -499,7 +494,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 } else {
 	/* display form to collect target and source URLs */
 	// TODO: add javascript to force selection of overwrite if a recurring sync is selected
-	displayPage('
+$smarty->assign('content', '
 <style><!--
 	.calendarUrl {
 		background-color: #c3d3df;
@@ -598,7 +593,7 @@ function toggleVisibility(target, visibleTrigger, innerHTML) {
 	</table>
 </form>
 	');
-	exit;
+	$smarty->display('page.tpl');
 }
 
 ?>

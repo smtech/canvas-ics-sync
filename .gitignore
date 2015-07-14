@@ -1,5 +1,6 @@
 secrets.xml
-/vendor/
-/docs/
-.DS_*
 admin/.ht*
+/smarty/cache/
+/smarty/templates_compiled/
+/vendor/
+.DS_*
