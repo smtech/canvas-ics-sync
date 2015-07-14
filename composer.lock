@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "3cab61578568dc29fb1899ab0a30ad01",
+    "hash": "ecced31063abb378975fa4ab2bb024b2",
     "packages": [
         {
             "name": "battis/appmetadata",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/battis/appmetadata.git",
-                "reference": "773e1ed3233fa8d3deaf181e5ce548251d1d2a66"
+                "reference": "4c03d21bf50f7aff7d922328d5d23bd5eb3f5906"
             },
             "dist": {
                 "type": "zip",
                 "url": "https://api.github.com/repos/battis/appmetadata/zipball/4c03d21bf50f7aff7d922328d5d23bd5eb3f5906",
-                "reference": "773e1ed3233fa8d3deaf181e5ce548251d1d2a66",
+                "reference": "4c03d21bf50f7aff7d922328d5d23bd5eb3f5906",
                 "shasum": ""
             },
             "type": "library",
@@ -77,6 +77,102 @@
             "description": "A proper REST client for PHP.",
             "homepage": "https://github.com/educoder/pest",
             "time": "2014-09-02 15:51:33"
+        },
+        {
+            "name": "minmb/sg-icalendar",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/minmb/SG-iCalendar.git",
+                "reference": "ec7574313701063ab2cc50e0913fe068f3b45a67"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/minmb/SG-iCalendar/zipball/ec7574313701063ab2cc50e0913fe068f3b45a67",
+                "reference": "ec7574313701063ab2cc50e0913fe068f3b45a67",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "3.7.8"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "SG_iCal.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Martin Häger",
+                    "email": "martin.hager@minmb.se"
+                },
+                {
+                    "name": "Morten Fangel",
+                    "email": "fangel@sevengoslings.net"
+                },
+                {
+                    "name": "Steven Oxley",
+                    "homepage": "http://stevenoxley.com"
+                }
+            ],
+            "description": "A PHP5 OOP iCalendar parser",
+            "time": "2012-12-03 08:32:25"
+        },
+        {
+            "name": "smarty/smarty",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smarty-php/smarty.git",
+                "reference": "61253c199980b88dff51e8f14dd3a2f409b9ae1b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/61253c199980b88dff51e8f14dd3a2f409b9ae1b",
+                "reference": "61253c199980b88dff51e8f14dd3a2f409b9ae1b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.1.x-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "libs/Smarty.class.php",
+                    "libs/SmartyBC.class.php",
+                    "libs/sysplugins/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Monte Ohrt",
+                    "email": "monte@ohrt.com"
+                },
+                {
+                    "name": "Uwe Tews",
+                    "email": "uwe.tews@googlemail.com"
+                },
+                {
+                    "name": "Rodney Rehm",
+                    "email": "rodney.rehm@medialize.de"
+                }
+            ],
+            "description": "Smarty - the compiling PHP template engine",
+            "homepage": "http://www.smarty.net",
+            "keywords": [
+                "templating"
+            ],
+            "time": "2015-07-12 05:03:55"
         },
         {
             "name": "smtech/canvaspest",
@@ -161,7 +257,8 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "smtech/canvaspest": 20
+        "smtech/canvaspest": 20,
+        "minmb/sg-icalendar": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
