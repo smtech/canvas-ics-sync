@@ -1,6 +1,11 @@
-# lock calendar-ics so that no ne'er-do-well can mess around
-# http://httpd.apache.org/docs/2.2/programs/htpasswd.html for more info
-AuthType Basic
-AuthName "calendar-ics"
-AuthUserFile /var/www-data/canvas/.htpasswd
-Require valid-user
+# hide files that we don't want folks browsing
+<FilesMatch "^(\.ht*|secrets\.xml|.*\.sql|.*\.inc\.php|vendor)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# make it look like config.xml is a real thing
+<Files config.xml>
+ForceType application/x-httpd-php
+SetHandler application/x-httpd-php
+</Files>
