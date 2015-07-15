@@ -3,7 +3,7 @@
 require_once('vendor/autoload.php');
 
 define('SECRETS_FILE', __DIR__ . '/secrets.xml');
-define('SCHEMA_FILE', __DIR__ . '/schema.sql');
+define('SCHEMA_FILE', __DIR__ . '/admin/schema-app.sql');
 define('MYSQL_PREFIX', '');
 
 session_start();
@@ -50,28 +50,53 @@ function initMySql() {
 		$secrets = initSecrets();
 	}
 	
+	/* turn off warnings, since we're going to test the connection ourselves */
+	set_error_handler(function() {});
 	$sql = new mysqli(
 		(string) $secrets->mysql->host,
 		(string) $secrets->mysql->username,
 		(string) $secrets->mysql->password,
 		(string) $secrets->mysql->database
 	);
-	if (!$sql) {
+	restore_error_handler();
+	
+	if ($sql->connect_error) {
 		throw new CanvasAPIviaLTI_Exception(
-			"MySQL database connection failed.",
+			$sql->connect_error,
 			CanvasAPIviaLTI_Exception::MYSQL_CONNECTION
 		);
 	}
 	return $sql;
 }
 
+function initAppMetadata() {
+	global $secrets;
+	global $sql;
+	
+	$metadata = new AppMetadata($sql, (string) $secrets->app->id);
+	
+	return $metadata;
+}
+
+/*****************************************************************************
+ *                                                                           *
+ * The script begins here                                                    *
+ *                                                                           *
+ *****************************************************************************/
+ 
+/* assume everything's going to be fine... */
 $ready = true;
+
+/* fire up the templating engine */
+$smarty = new CustomSmarty();
+
 try {
 
 	/* initialize global variables */
 	$secrets = initSecrets();
 	$sql = initMySql();
-	$metadata = new AppMetadata($sql, (string) $secrets->app->id);
+	$metadata = initAppMetadata();
+	$smarty->assign('metadata', $metadata);
 
 	/* set up a Tool Provider (TP) object to process the LTI request */
 	$toolProvider = new CanvasAPIviaLTI(LTI_Data_Connector::getDataConnector($sql));

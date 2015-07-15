@@ -2,15 +2,22 @@
 
 require_once('common.inc.php');
 
-$smarty->assign('title', 'Choose an Import Direction');
-$smarty->assign('content', '
-	<p>In which direction do you want to send your information?</p>
-	<ul>
-		<li><a href="export.php">Export:</a> I would like to get an ICS feed of the calendar information (which I can subscribe to in Google, iCal, Outlook, etc.) for a specific course in Canvas.</li>
-		<li><a href="import.php">Import:</a> I have an ICS feed (from Google, Smartsheet, iCloud, etc.) that I want to bring into a Canvas course, user or group.</li>
-	</ul>
-');
+/* replace the contents of this file with your own app logic */
 
-$smarty->display('page.tpl');
+$api = new CanvasPest($_SESSION['apiUrl'], $_SESSION['apiToken']);
+$profile = $api->get('/users/self/profile');
+
+$smarty->assign('content', "
+	<h1>App</h1>
+	
+	<h2>{$_REQUEST['lti-request']} Request</h3>" .
+	(isset($_REQUEST['reason']) ?
+		"<p>{$_REQUEST['reason']}</p>" : ''
+	) . "
+	<h2>GET /users/self/profile</h3>		
+	<pre>" . print_r($profile, true) . '</pre>'
+);
+
+$smarty->display();
 
 ?>

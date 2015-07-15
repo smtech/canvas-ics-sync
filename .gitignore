@@ -1,6 +1,11 @@
+# authentication credentials
+.ht*
 secrets.xml
-admin/.ht*
-/smarty/cache/
-/smarty/templates_compiled/
+
+# code libraries
 /vendor/
+/smarty/cache/
+/smarty/templates_c/
+
+# file system
 .DS_*
