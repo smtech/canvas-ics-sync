@@ -38,12 +38,14 @@ function urlExists($url) {
  * compute the calendar context for the canvas object based on its URL
  **/
 function getCanvasContext($canvasUrl) {
+	global $metadata;
+	
 	// TODO: accept calendar2?contexts links too (they would be an intuitively obvious link to use, after all)
 	// FIXME: users aren't working
 	// TODO: it would probably be better to look up users by email address than URL
 	/* get the context (user, course or group) for the canvas URL */
 	$canvasContext = array();
-	if (preg_match('%(https?://)?(' . parse_url(CANVAS_API_URL, PHP_URL_HOST) . '/((about/(\d+))|(courses/(\d+)(/groups/(\d+))?)|(accounts/\d+/groups/(\d+))))%', $_REQUEST['canvas_url'], $matches)) {
+	if (preg_match('%(https?://)?(' . parse_url($metadata['CANVAS_INSTANCE_URL'], PHP_URL_HOST) . '/((about/(\d+))|(courses/(\d+)(/groups/(\d+))?)|(accounts/\d+/groups/(\d+))))%', $_REQUEST['canvas_url'], $matches)) {
 		$canvasContext['canonical_url'] = "https://{$matches[2]}"; // https://stmarksschool.instructure.com/courses/953
 		
 		// course or account groups
@@ -79,8 +81,11 @@ function getCanvasContext($canvasUrl) {
  * This must happen AFTER the event hash has been calculated!
  **/
 function filterEvent($event, $calendarCache) {
+	
+	$_event = new Writable_SG_iCAL_VEvent($event);
+	
 	/* strip HTML tags from the event title */
-	$event['event_text'] = strip_tags($event['event_text']);
+	$_event->setSummary(strip_tags($_event->getSummary()));
 				
  	if (
 	 	// include this event if filtering is off...
@@ -88,24 +93,24 @@ function filterEvent($event, $calendarCache) {
  		(
 			(
 				( // if filtering is on, and there's an include pattern test that pattern...
-					strlen($calendarCache['include_regexp']) > 0 &&
-					preg_match("%{$calendarCache['include_regexp']}%", $event['event_text'])
+					!empty($calendarCache['include_regexp']) &&
+					preg_match("%{$calendarCache['include_regexp']}%", $_event->getSummary())
 				)
 			) &&
 			!( // if there is an exclude pattern, make sure that this event is NOT excluded
-				strlen($calendarCache['exclude_regexp']) > 0 &&
-				preg_match("%{$calendarCache['exclude_regexp']}%", $event['event_text'])
+				!empty($calendarCache['exclude_regexp']) &&
+				preg_match("%{$calendarCache['exclude_regexp']}%", $_event->getSummary())
 			)
 		)
 	) {
 		// TODO: it would be even more elegant to allow regexp reformatting of titles...
 		/* strip off [bracket style] tags at the end of the event title */
-		$event['event_text'] = preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', $event['event_text']);	
+		$_event->setSummary(preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', $_event->getSummary()));	
 	
 		/* replace newlines with <br /> to maintain formatting */
-		$event['description'] = str_replace( PHP_EOL , '<br />' . PHP_EOL, $event['description']);
+		$_event->setDescription(str_replace( PHP_EOL , '<br />' . PHP_EOL, $_event->getDescription()));
 	
-		return $event;
+		return $_event;
 	}
 
 	return false;
@@ -130,13 +135,13 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 			
 				/* calculate the unique pairing ID of this ICS feed and canvas object */
 				$pairingHash = getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
-			
-				debugFlag('START', getSyncTimestamp());
+				$log = Log::singleton('file', "logs/$pairingHash.log");
+				$log->log('Sync started [' . getSyncTimestamp() . ']', PEAR_LOG_INFO);
 			
 				/* tell users that it's started and to cool their jets */
 				$smarty->assign('content', '
 					<h3>Calendar Import Started</h3>
-					<p>The calendar import that you requested has begun. You may leave this page at anytime. You can see the progress of the import by visiting <a target="_blank" href="https://' . parse_url(CANVAS_API_URL, PHP_URL_HOST) . "/calendar?include_contexts={$canvasContext['context']}_{$canvasObject['id']}\">this calendar</a> in Canvas.</p>"
+					<p>The calendar import that you requested has begun. You may leave this page at anytime. You can see the progress of the import by visiting <a target="_blank" href="https://' . parse_url($metadata['CANVAS_INSTANCE_URL'], PHP_URL_HOST) . "/calendar?include_contexts={$canvasContext['context']}_{$canvasObject['id']}\">this calendar</a> in Canvas.</p>"
 				);
 				$smarty->display('page.tpl');
 				
@@ -144,7 +149,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				$ics = new SG_iCalReader($_REQUEST['cal']);
 							
 				/* log this pairing in the database cache, if it doesn't already exist */
-				$calendarCacheResponse = mysqlQuery("
+				$calendarCacheResponse = $sql->query("
 					SELECT *
 						FROM `calendars`
 						WHERE
@@ -154,7 +159,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				
 				/* if the calendar is already cached, just update the sync timestamp */
 				if ($calendarCache) {
-					mysqlQuery("
+					$sql->query("
 						UPDATE `calendars`
 							SET
 								`synced` = '" . getSyncTimestamp() . "'
@@ -162,7 +167,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 								`id` = '$pairingHash'
 					");
 				} else {
-					mysqlQuery("
+					$sql->query("
 						INSERT INTO `calendars`
 							(
 								`id`,
@@ -176,19 +181,19 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							)
 							VALUES (
 								'$pairingHash',
-								'" . addslashes($master_array['calendar_name']) . "',
+								'" . $sql->real_escape_string($ics->getCalendarInfo()->getTitle()) . "',
 								'{$_REQUEST['cal']}',
 								'{$canvasContext['canonical_url']}',
 								'" . getSyncTimestamp() . "',
 								'" . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER) . "',
-								" . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER ? "'" . addslashes($_REQUEST['include_regexp']) . "'" : 'NULL') . ",
-								" . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER ? "'" . addslashes($_REQUEST['exclude_regexp']) . "'" : 'NULL') . "
+								" . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER ? "'" . $sql->real_escape_string($_REQUEST['include_regexp']) . "'" : 'NULL') . ",
+								" . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER ? "'" . $sql->real_escape_string($_REQUEST['exclude_regexp']) . "'" : 'NULL') . "
 							)
 					");
 				}
 				
 				/* refresh calendar information from cache database */
-				$calendarCacheResponse = mysqlQuery("
+				$calendarCacheResponse = $sql->query("
 					SELECT *
 						FROM `calendars`
 						WHERE
@@ -200,13 +205,9 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				   ICS feed, caching changes in the database */
 				// TODO: would it be worth the performance improvement to just process things from today's date forward? (i.e. ignore old items, even if they've changed...)
 				foreach($ics->getEvents() as $event) {
-					/* urldecode all of the fields of the event, for easier processing! */
-					foreach ($event as $key => $value) {
-						$event[$key] = urldecode($value);
-					}
-												
+					
 					/* does this event already exist in Canvas? */
-					$eventHash = getEventHash($date, $time, $uid, $event);
+					$eventHash = getEventHash($event);
 					
 					/* filter event -- clean up formatting and check for regexp filtering */
 					$event = filterEvent($event, $calendarCache);
@@ -215,7 +216,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 					if ($event) {
 						
 						/* have we cached this event already? */
-						$eventCacheResponse = mysqlQuery("
+						$eventCacheResponse = $sql->query("
 							SELECT *
 								FROM `events`
 								WHERE
@@ -228,7 +229,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						   the timestamp */
 						$eventCache = $eventCacheResponse->fetch_assoc();
 						if ($eventCache) {
-							mysqlQuery("
+							$sql->query("
 								UPDATE `events`
 									SET
 										`synced` = '" . getSyncTimestamp() . "'
@@ -239,28 +240,25 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						/* otherwise, add this new event and cache it */
 						} else {
 							/* multi-day event instance start times need to be changed to _this_ date */
-							$start = new DateTime("@{$event['start_unixtime']}");
+							$start = new DateTime('@' . $event->getStart());
 							$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-							$start->setDate(substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2));
 							
-							$end = new DateTime("@{$event['end_unixtime']}");
+							$end = new DateTime('@' . $event->getEnd());
 							$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-							$end->setDate(substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2));
 
 							$calendarEvent = $api->post("/calendar_events",
 								array(
 									'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
-									'calendar_event[title]' => $event['event_text'],
-									'calendar_event[description]' => $event['description'],
+									'calendar_event[title]' => $event->getSummary(),
+									'calendar_event[description]' => $event->getDescription(),
 									'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
 									'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
-									'calendar_event[location_name]' => $event['location']/*,
-									'as_user_id' => ($canvasContext['context'] == 'user' ? $canvasObject['id'] : '') // TODO: this feels skeevy -- like the empty string will break */
+									'calendar_event[location_name]' => $event->getLocation()
 								)
 							);
 							$icalEventJson = json_encode($event);
 							$calendarEventJson = json_encode($calendarEvent);
-							mysqlQuery("
+							$sql->query("
 								INSERT INTO `events`
 									(
 										`calendar`,
@@ -278,9 +276,9 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						}
 					}
 				}
-			
+							
 				/* clean out previously synced events that are no longer correct */
-				$deletedEventsResponse = mysqlQuery("
+				$deletedEventsResponse = $sql->query("
 					SELECT * FROM `events`
 						WHERE
 							`calendar` = '{$calendarCache['id']}' AND
@@ -292,14 +290,13 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							array(
 								'cancel_reason' => getSyncTimestamp(),
 								'as_user_id' => ($canvasContext['context'] == 'user' ? $canvasObject['id'] : '') // TODO: this feels skeevy -- like the empty string will break
-							),
-							CANVAS_API_EXCEPTION_CLIENT // FIXME
+							)
 						);
 					} catch (Pest_Unauthorized $e) {
 						/* if the event has been deleted in Canvas, we'll get an error when
 						   we try to delete it a second time. We still need to delete it from
 						   our cache database, however */
-						debugFlag("Cache out-of-sync: calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.");
+						$log->log("Cache out-of-sync: calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.", PEAR_LOG_NOTICE);
 					} catch (Pest_ClientError $e) {
 						$messages[] = array(
 							'class' => 'error',
@@ -315,7 +312,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						$smarty->display('page.tpl');
 						exit;
 					}
-					mysqlQuery("
+					$sql->query("
 						DELETE FROM `events`
 							WHERE
 								`id` = '{$deletedEventCache['id']}'
@@ -324,7 +321,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				
 				/* if this was a scheduled import (i.e. a sync), update that schedule */
 				if (isset($_REQUEST['schedule'])) {
-					mysqlQuery("
+					$sql->query("
 						UPDATE `schedules`
 							SET
 								`synced` = '" . getSyncTimestamp() . "'
@@ -368,7 +365,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						$filename = md5(getSyncTimestamp()) . '.txt';
 						file_put_contents("/tmp/$filename", $crontabs . $crontab . PHP_EOL);
 						shell_exec("crontab /tmp/$filename");
-						debugFlag("added new schedule '" . $shellArguments[INDEX_SCHEDULE] . "' to crontab");
+						$log->log("added new schedule '" . $shellArguments[INDEX_SCHEDULE] . "' to crontab", PEAR_LOG_INFO);
 					}
 					
 					/* try to make sure that we have execute access to sync.sh */
@@ -376,7 +373,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 	
 					/* add to the cache database schedule, replacing any schedules for this
 					   calendar that are already there */
-					$schedulesResponse = mysqlQuery("
+					$schedulesResponse = $sql->query("
 						SELECT *
 							FROM `schedules`
 							WHERE
@@ -389,7 +386,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						   new one we just set */
 						if ($shellArguments[INDEX_SCHEDULE] != $schedule['schedule']) {
 							/* was this the last schedule to require this trigger? */
-							$schedulesResponse = mysqlQuery("
+							$schedulesResponse = $sql->query("
 								SELECT *
 									FROM `schedules`
 									WHERE
@@ -402,10 +399,10 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 								$filename = md5(getSyncTimestamp()) . '.txt';
 								file_put_contents("/tmp/$filename", $crontabs);
 								shell_exec("crontab /tmp/$filename");
-								debugFlag("removed unused schedule '{$schedule['schedule']}' from crontab");
+								$log-log("removed unused schedule '{$schedule['schedule']}' from crontab", PEAR_LOG_INFO);
 							}
 						
-							mysqlQuery("
+							$sql->query("
 								UPDATE `schedules`
 									SET
 										`schedule` = '" . $shellArguments[INDEX_SCHEDULE] . "',
@@ -415,7 +412,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							");
 						}
 					} else {
-						mysqlQuery("
+						$sql->query("
 							INSERT INTO `schedules`
 								(
 									`calendar`,
@@ -433,13 +430,13 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				
 				/* if we're ovewriting data (for example, if this is a recurring sync, we
 				   need to remove the events that were _not_ synced this in this round */
-				if ($_REQUEST['overwrite'] == VALUE_OVERWRITE_CANVAS_CALENDAR) {
+				if (isset($_REQUEST['overwrite']) && $_REQUEST['overwrite'] == VALUE_OVERWRITE_CANVAS_CALENDAR) {
 					// TODO: actually deal with this
 				}
 				
 				// TODO: deal with messaging based on context
 			
-				debugFlag('FINISH');
+				$log->log('Finished sync ['. getSyncTimestamp() . ']');
 				exit;
 			} else {
 				$messages[] = array(
@@ -508,7 +505,7 @@ $smarty->assign('content', '
 
 var crontabSection = '<label for=\"crontab\">Custom Sync Schedule <span class=\"comment\"><em>Warning:</em> Not for the faint of heart! Enter a valid crontab time specification. For more information, <a target=\"_blank\" href=\"http://www.linuxweblog.com/crotab-tutorial\">refer to this tutorial.</a></span></label><input id=\"crontab\" name=\"crontab\" type=\"text\" class=\"code\" value=\"0 0 * * *\" />';
 
-var tagFilterSection = '<label for=\"include_regexp\">Regular expression to include <span class=\"comment\">A regular expression to include in the import (e.g. <code>.*</code>). " . WARNING_REGEXP_FILTER . "</span></label><input id=\"include_regexp\" name=\"include_regexp\" class=\"code\" type=\"text\" value=\".*\" /><label for=\"exclude_regexp\">Regular expression to exclude <span class=\"comment\">A regular expression to exclude from the import (e.g. <code>((\\[PAR\\])|(\\[FAC\\]))</code>). " . WARNING_REGEXP_FILTER . "</span></label><input id=\"exclude_regexp\" name=\"exclude_regexp\" class=\"code\" type=\"text\" />';
+var tagFilterSection = '<label for=\"include_regexp\">Regular expression to include <span class=\"comment\">A regular expression to include in the import (e.g. <code>.*</code>). " . WARNING_REGEXP_FILTER . "</span></label><input id=\"include_regexp\" name=\"include_regexp\" class=\"code\" type=\"text\" value=\".*\" /><label for=\"exclude_regexp\">Regular expression to exclude <span class=\"comment\">A regular expression to exclude from the import (e.g. <code>((\\\[PAR\\\])|(\\\[FAC\\\]))</code>). " . WARNING_REGEXP_FILTER . "</span></label><input id=\"exclude_regexp\" name=\"exclude_regexp\" class=\"code\" type=\"text\" />';
 
 function toggleVisibility(target, visibleTrigger, innerHTML) {
 	var targetElement = document.getElementById(target);

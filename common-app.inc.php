@@ -1,6 +1,8 @@
 <?php
 
-$api = new CanvasPest($metadata['CANVAS_API_URL'], $metadata['CANVAS_API_TOKEN']);
+if (isset($_SESSION['apiUrl']) && isset($_SESSION['apiToken'])) {
+	$api = new CanvasPest($_SESSION['apiUrl'], $_SESSION['apiToken']);
+}
 
 /* order of shell arguments for sync */
 define('INDEX_COMMAND', 0);
@@ -13,6 +15,11 @@ define('SCHEDULE_WEEKLY', 'weekly');
 define('SCHEDULE_DAILY', 'daily');
 define('SCHEDULE_HOURLY', 'hourly');
 define('SCHEDULE_CUSTOM', 'custom');
+
+define('LOCAL_TIMEZONE', 'US/Eastern'); // TODO: Can we detect the timezone for the Canvas instance and use it?
+define('SEPARATOR', '_'); // used when concatenating information in the cache database
+define('CANVAS_TIMESTAMP_FORMAT', 'Y-m-d\TH:iP');
+define('SYNC_TIMESTAMP_FORMAT', 'Y-m-d\TH:iP'); // same as CANVAS_TIMESTAMP_FORMAT, FWIW
 
 /* cache database tables */
 
@@ -46,14 +53,15 @@ define('SCHEDULE_CUSTOM', 'custom');
  * Canvas calendar
  **/
 function getPairingHash($icsUrl, $canvasContext) {
-	return md5($icsUrl . $canvasContext . CANVAS_API_URL);
+	global $metadata;
+	return md5($icsUrl . $canvasContext . $metadata['CANVAS_INSTANCE_URL']);
 }
 
 /**
  * Generate a hash of this version of an event to cache in the database
  **/
-function getEventHash($date, $time, $uid, $event) {
-	return md5($date . $time . $uid . serialize($event));
+function getEventHash($event) {
+	return md5(serialize($event));
 }
 
 /**

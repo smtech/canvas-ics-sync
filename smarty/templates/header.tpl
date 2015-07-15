@@ -11,8 +11,9 @@
 <header id="header">
 	<div id="header-logo"></div>
 	<ul id="navigation-menu">
-		<li><a href="{$metadata['APP_URL']}/app.php">Home</a></li>
-		<li><a href="{$metadata['APP_URL']}/admin">Admin</a></li>
+		<li><a href="{$metadata['APP_URL']}/import.php">Import</a></li>
+		<li><a href="{$metadata['APP_URL']}/export.php">Export</a></li>
+		<li><a href="{$metadata['APP_URL']}/purge.php">Purge</a></li>
 	</ul>
 </header>
 
