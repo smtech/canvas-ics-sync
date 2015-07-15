@@ -1,26 +1,5 @@
 <?php
 
-class StMarks_Smarty extends Smarty {
-	public function __construct() {
-		global $metadata;
-		parent::__construct();
-		$this->setTemplateDir($metadata['APP_PATH'] . '/smarty/templates');
-		$this->setCompileDir($metadata['APP_PATH'] . '/smarty/templates_compiled');
-		$this->setConfigDir($metadata['APP_PATH'] . '/smarty/config');
-		$this->setCacheDir($metadata['APP_PATH'] . '/smarty/cache');
-		$this->assign('metadata', $metadata);
-	}
-	
-	public function display($template, $cache_id = null, $compile_id = null, $parent = null) {
-		global $messages;
-		$this->assign('messages', $messages);
-		parent::display($template, $cache_id, $compile_id, $parent);
-	}
-}
-
-$smarty = new StMarks_Smarty();
-$messages = array();
-
 $api = new CanvasPest($metadata['CANVAS_API_URL'], $metadata['CANVAS_API_TOKEN']);
 
 /* order of shell arguments for sync */
