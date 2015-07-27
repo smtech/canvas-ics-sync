@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "76dd3de0466f29538a30ddb0fa6df0eb",
+    "hash": "f4f75e656e7be2858caf0830e05c55d0",
     "packages": [
         {
             "name": "battis/appmetadata",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/battis/appmetadata.git",
-                "reference": "0788378921d4c35fac8bd354537f34c4fb2c8087"
+                "reference": "e602656eeb297a1c385ffff5d9b2fa45d51607e3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/battis/appmetadata/zipball/0788378921d4c35fac8bd354537f34c4fb2c8087",
-                "reference": "0788378921d4c35fac8bd354537f34c4fb2c8087",
+                "url": "https://api.github.com/repos/battis/appmetadata/zipball/e602656eeb297a1c385ffff5d9b2fa45d51607e3",
+                "reference": "e602656eeb297a1c385ffff5d9b2fa45d51607e3",
                 "shasum": ""
             },
             "type": "library",
@@ -27,6 +27,9 @@
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
             "authors": [
                 {
                     "name": "Seth Battis",
@@ -34,7 +37,7 @@
                 }
             ],
             "description": "An object to store app metadata backed by a MySQL table",
-            "time": "2015-07-01 01:04:01"
+            "time": "2015-07-25 03:37:43"
         },
         {
             "name": "educoder/pest",
@@ -233,12 +236,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smarty-php/smarty.git",
-                "reference": "61253c199980b88dff51e8f14dd3a2f409b9ae1b"
+                "reference": "0436176739cd36e2673a9521b7871d93011a5704"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/61253c199980b88dff51e8f14dd3a2f409b9ae1b",
-                "reference": "61253c199980b88dff51e8f14dd3a2f409b9ae1b",
+                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/0436176739cd36e2673a9521b7871d93011a5704",
+                "reference": "0436176739cd36e2673a9521b7871d93011a5704",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +283,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2015-07-12 05:03:55"
+            "time": "2015-07-26 16:11:10"
         },
         {
             "name": "smtech/canvaspest",
@@ -288,12 +291,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smtech/canvaspest.git",
-                "reference": "111fe228ba35292e90f790860ed93aa9a7c1a0b4"
+                "reference": "64d23800906f6a5f709066bd63f4ace544967870"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smtech/canvaspest/zipball/111fe228ba35292e90f790860ed93aa9a7c1a0b4",
-                "reference": "111fe228ba35292e90f790860ed93aa9a7c1a0b4",
+                "url": "https://api.github.com/repos/smtech/canvaspest/zipball/64d23800906f6a5f709066bd63f4ace544967870",
+                "reference": "64d23800906f6a5f709066bd63f4ace544967870",
                 "shasum": ""
             },
             "require": {
@@ -306,6 +309,9 @@
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
             "authors": [
                 {
                     "name": "Seth Battis",
@@ -313,20 +319,20 @@
                 }
             ],
             "description": "An extension of Pest to make RESTful queries to the Instructure Canvas API",
-            "time": "2015-06-30 16:53:43"
+            "time": "2015-07-25 03:19:28"
         },
         {
             "name": "smtech/oauth-negotiator",
-            "version": "v1.0.1",
+            "version": "v1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/smtech/oauth-negotiator.git",
-                "reference": "e061d4cabd0d109d4c02ba362fb9b76630cc6cc9"
+                "reference": "e77d6cf8cb2392dd5f33a5ee9100a9d858999c16"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smtech/oauth-negotiator/zipball/e061d4cabd0d109d4c02ba362fb9b76630cc6cc9",
-                "reference": "e061d4cabd0d109d4c02ba362fb9b76630cc6cc9",
+                "url": "https://api.github.com/repos/smtech/oauth-negotiator/zipball/e77d6cf8cb2392dd5f33a5ee9100a9d858999c16",
+                "reference": "e77d6cf8cb2392dd5f33a5ee9100a9d858999c16",
                 "shasum": ""
             },
             "require": {
@@ -334,6 +340,9 @@
             },
             "type": "library",
             "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
             "authors": [
                 {
                     "name": "Seth Battis",
@@ -341,7 +350,43 @@
                 }
             ],
             "description": "Negotiate an OAuth 2 authentication or API token",
-            "time": "2015-07-14 18:31:55"
+            "time": "2015-07-25 03:42:45"
+        },
+        {
+            "name": "smtech/stmarkssmarty",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smtech/stmarkssmarty.git",
+                "reference": "74382efe00a60b20e1ef7c30d75900f659ab26b9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smtech/stmarkssmarty/zipball/74382efe00a60b20e1ef7c30d75900f659ab26b9",
+                "reference": "74382efe00a60b20e1ef7c30d75900f659ab26b9",
+                "shasum": ""
+            },
+            "require": {
+                "smarty/smarty": "3.1.*"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    ""
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Seth Battis",
+                    "email": "sethbattis@stmarksschool.org"
+                }
+            ],
+            "description": "A standard Smarty install for St. Mark's projects",
+            "time": "2015-07-27 18:22:48"
         },
         {
             "name": "spvsoftwareproducts/LTI_Tool_Provider",
@@ -365,6 +410,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "smtech/stmarkssmarty": 20,
         "smtech/canvaspest": 20,
         "battis/appmetadata": 20,
         "minmb/sg-icalendar": 20
