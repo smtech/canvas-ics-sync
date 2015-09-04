@@ -474,6 +474,9 @@
                 "shasum": null
             },
             "type": "library",
+            "license": [
+                "LGPL-3.0"
+            ],
             "authors": [
                 {
                     "name": "Stephen Vickers"
