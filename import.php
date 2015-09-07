@@ -145,9 +145,15 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				);
 				$smarty->display('page.tpl');
 				
-				/* use phpicalendar to parse the ICS feed into $master_array */
-				$ics = new SG_iCalReader($_REQUEST['cal']);
-							
+				/* parse the ICS feed */
+				$ics = new vcalendar(
+					array(
+						'unique_id' => 'foobar',
+						'url' => $_REQUEST['ics']
+					)
+				);
+				$ics->parse();
+				
 				/* log this pairing in the database cache, if it doesn't already exist */
 				$calendarCacheResponse = $sql->query("
 					SELECT *
@@ -204,75 +210,87 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				/* walk through $master_array and update the Canvas calendar to match the
 				   ICS feed, caching changes in the database */
 				// TODO: would it be worth the performance improvement to just process things from today's date forward? (i.e. ignore old items, even if they've changed...)
-				foreach($ics->getEvents() as $event) {
-					
-					/* does this event already exist in Canvas? */
-					$eventHash = getEventHash($event);
-					
-					/* filter event -- clean up formatting and check for regexp filtering */
-					$event = filterEvent($event, $calendarCache);
-
-					/* if the event should be included... */
-					if ($event) {
+				// FIXME: Arbitrarily selecting events in for a year on either side of today's date, probably a better system?
+				foreach ($ics->selectComponents( date('Y')-1, date('m'), date('d'), date('Y')+1, $date('m'), date('d'), false, false, true, true) as $years) {
+					foreach ($years as $year => $months) {
+						foreach ($months as $month => $days) {
+							foreach ($days as $day => $events) {
+								foreach ($events as $i => $event) {
+				
+									/* does this event already exist in Canvas? */
+									$eventHash = getEventHash($event);
+									
+									/* filter event -- clean up formatting and check for regexp filtering */
+									$event = filterEvent($event, $calendarCache);
+				
+									/* if the event should be included... */
+									if ($event) {
+										
+										/* have we cached this event already? */
+										$eventCacheResponse = $sql->query("
+											SELECT *
+												FROM `events`
+												WHERE
+													`calendar` = '{$calendarCache['id']}' AND
+													`event_hash` = '$eventHash'
+										");
+										
 						
-						/* have we cached this event already? */
-						$eventCacheResponse = $sql->query("
-							SELECT *
-								FROM `events`
-								WHERE
-									`calendar` = '{$calendarCache['id']}' AND
-									`event_hash` = '$eventHash'
-						");
-						
-		
-						/* if we already have the event cached in its current form, just update
-						   the timestamp */
-						$eventCache = $eventCacheResponse->fetch_assoc();
-						if ($eventCache) {
-							$sql->query("
-								UPDATE `events`
-									SET
-										`synced` = '" . getSyncTimestamp() . "'
-									WHERE
-										`id` = '{$eventCache['id']}'
-							");
-						
-						/* otherwise, add this new event and cache it */
-						} else {
-							/* multi-day event instance start times need to be changed to _this_ date */
-							$start = new DateTime('@' . $event->getStart());
-							$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-							
-							$end = new DateTime('@' . $event->getEnd());
-							$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-
-							$calendarEvent = $api->post("/calendar_events",
-								array(
-									'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
-									'calendar_event[title]' => $event->getSummary(),
-									'calendar_event[description]' => $event->getDescription(),
-									'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
-									'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
-									'calendar_event[location_name]' => $event->getLocation()
-								)
-							);
-							$icalEventJson = json_encode($event);
-							$calendarEventJson = json_encode($calendarEvent);
-							$sql->query("
-								INSERT INTO `events`
-									(
-										`calendar`,
-										`calendar_event[id]`,
-										`event_hash`,
-										`synced`
-									)
-									VALUES (
-										'{$calendarCache['id']}',
-										'{$calendarEvent['id']}',
-										'$eventHash',
-										'" . getSyncTimestamp() . "'
-									)
-							");
+										/* if we already have the event cached in its current form, just update
+										   the timestamp */
+										$eventCache = $eventCacheResponse->fetch_assoc();
+										if ($eventCache) {
+											$sql->query("
+												UPDATE `events`
+													SET
+														`synced` = '" . getSyncTimestamp() . "'
+													WHERE
+														`id` = '{$eventCache['id']}'
+											");
+										
+										/* otherwise, add this new event and cache it */
+										} else {
+											/* multi-day event instance start times need to be changed to _this_ date */
+											$start = new DateTime(iCalUtilityFunctions::_date2strdate($event->getProperty('DTSTART')));
+											$end = new DateTime(iCalUtilityFunctions::_date2strdate($event->getProperty('DTEND')));
+											if ($event->getProperty('X-RECURRENCE')) {
+												$start = new DateTime($event->getProperty('X-CURRENT-DTSTART')[1]);
+												$end = new DateTime($event->getProprty('X-CURRENT-DTEND')[1]);
+											}
+											$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
+											$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
+				
+											$calendarEvent = $api->post("/calendar_events",
+												array(
+													'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
+													'calendar_event[title]' => $event->getProperty('SUMMARY'),
+													'calendar_event[description]' => $event->getProperty('DESCRIPTION'),
+													'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
+													'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
+													'calendar_event[location_name]' => $event->getProperty('LOCATION')
+												)
+											);
+											$icalEventJson = json_encode($event);
+											$calendarEventJson = json_encode($calendarEvent);
+											$sql->query("
+												INSERT INTO `events`
+													(
+														`calendar`,
+														`calendar_event[id]`,
+														`event_hash`,
+														`synced`
+													)
+													VALUES (
+														'{$calendarCache['id']}',
+														'{$calendarEvent['id']}',
+														'$eventHash',
+														'" . getSyncTimestamp() . "'
+													)
+											");
+										}
+									}
+								}
+							}
 						}
 					}
 				}

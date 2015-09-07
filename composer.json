@@ -28,8 +28,8 @@
 		"smtech/oauth-negotiator": "~1.0",
 		"battis/appmetadata": "~1.0",
 		"spvsoftwareproducts/LTI_Tool_Provider": "~2.5",
-		"minmb/sg-icalendar": "dev-master",
-		"pear/log": "~1.12"
+		"pear/log": "~1.12",
+		"kigkonsult/icalcreator": "dev-master"
 	},
 	"autoload": {
 		"classmap": [""]
