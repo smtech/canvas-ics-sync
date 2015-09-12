@@ -82,10 +82,8 @@ function getCanvasContext($canvasUrl) {
  **/
 function filterEvent($event, $calendarCache) {
 	
-	$_event = new Writable_SG_iCAL_VEvent($event);
-	
 	/* strip HTML tags from the event title */
-	$_event->setSummary(strip_tags($_event->getSummary()));
+	$event->setProperty('SUMMARY', strip_tags($event->getProperty('SUMMARY')));
 				
  	if (
 	 	// include this event if filtering is off...
@@ -94,23 +92,24 @@ function filterEvent($event, $calendarCache) {
 			(
 				( // if filtering is on, and there's an include pattern test that pattern...
 					!empty($calendarCache['include_regexp']) &&
-					preg_match("%{$calendarCache['include_regexp']}%", $_event->getSummary())
+					preg_match("%{$calendarCache['include_regexp']}%", $event->getProperty('SUMMARY'))
 				)
 			) &&
 			!( // if there is an exclude pattern, make sure that this event is NOT excluded
 				!empty($calendarCache['exclude_regexp']) &&
-				preg_match("%{$calendarCache['exclude_regexp']}%", $_event->getSummary())
+				preg_match("%{$calendarCache['exclude_regexp']}%", $event->getProperty('SUMMARY'))
 			)
 		)
 	) {
 		// TODO: it would be even more elegant to allow regexp reformatting of titles...
 		/* strip off [bracket style] tags at the end of the event title */
-		$_event->setSummary(preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', $_event->getSummary()));	
+		$event->setProperty('SUMMARY', preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', $event->getProperty('SUMMARY')));	
 	
+		// TODO MarkDown parsing of description
 		/* replace newlines with <br /> to maintain formatting */
-		$_event->setDescription(str_replace( PHP_EOL , '<br />' . PHP_EOL, $_event->getDescription()));
+		$event->setProperty('DESCRIPTION', str_replace( PHP_EOL , '<br />' . PHP_EOL, $event->getProperty('DESCRIPTION')));
 	
-		return $_event;
+		return $event;
 	}
 
 	return false;
@@ -148,8 +147,8 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				/* parse the ICS feed */
 				$ics = new vcalendar(
 					array(
-						'unique_id' => 'foobar',
-						'url' => $_REQUEST['ics']
+						'unique_id' => $metadata['APP_ID'],
+						'url' => $_REQUEST['cal']
 					)
 				);
 				$ics->parse();
@@ -187,7 +186,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							)
 							VALUES (
 								'$pairingHash',
-								'" . $sql->real_escape_string($ics->getCalendarInfo()->getTitle()) . "',
+								'" . $sql->real_escape_string($ics->getProperty('X-WR-CALNAME')) . "',
 								'{$_REQUEST['cal']}',
 								'{$canvasContext['canonical_url']}',
 								'" . getSyncTimestamp() . "',
@@ -211,83 +210,81 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				   ICS feed, caching changes in the database */
 				// TODO: would it be worth the performance improvement to just process things from today's date forward? (i.e. ignore old items, even if they've changed...)
 				// FIXME: Arbitrarily selecting events in for a year on either side of today's date, probably a better system?
-				foreach ($ics->selectComponents( date('Y')-1, date('m'), date('d'), date('Y')+1, $date('m'), date('d'), false, false, true, true) as $years) {
-					foreach ($years as $year => $months) {
-						foreach ($months as $month => $days) {
-							foreach ($days as $day => $events) {
-								foreach ($events as $i => $event) {
-				
-									/* does this event already exist in Canvas? */
-									$eventHash = getEventHash($event);
+				foreach ($ics->selectComponents( date('Y')-1, date('m'), date('d'), date('Y')+1, date('m'), date('d'), false, false, true, true) as $years) {
+					foreach ($months as $month => $days) {
+						foreach ($days as $day => $events) {
+							foreach ($events as $i => $event) {
+			
+								/* does this event already exist in Canvas? */
+								$eventHash = getEventHash($event);
+								
+								/* filter event -- clean up formatting and check for regexp filtering */
+								$event = filterEvent($event, $calendarCache);
+			
+								/* if the event should be included... */
+								if ($event) {
 									
-									/* filter event -- clean up formatting and check for regexp filtering */
-									$event = filterEvent($event, $calendarCache);
-				
-									/* if the event should be included... */
-									if ($event) {
-										
-										/* have we cached this event already? */
-										$eventCacheResponse = $sql->query("
-											SELECT *
-												FROM `events`
+									/* have we cached this event already? */
+									$eventCacheResponse = $sql->query("
+										SELECT *
+											FROM `events`
+											WHERE
+												`calendar` = '{$calendarCache['id']}' AND
+												`event_hash` = '$eventHash'
+									");
+									
+					
+									/* if we already have the event cached in its current form, just update
+									   the timestamp */
+									$eventCache = $eventCacheResponse->fetch_assoc();
+									if ($eventCache) {
+										$sql->query("
+											UPDATE `events`
+												SET
+													`synced` = '" . getSyncTimestamp() . "'
 												WHERE
-													`calendar` = '{$calendarCache['id']}' AND
-													`event_hash` = '$eventHash'
+													`id` = '{$eventCache['id']}'
 										");
-										
-						
-										/* if we already have the event cached in its current form, just update
-										   the timestamp */
-										$eventCache = $eventCacheResponse->fetch_assoc();
-										if ($eventCache) {
-											$sql->query("
-												UPDATE `events`
-													SET
-														`synced` = '" . getSyncTimestamp() . "'
-													WHERE
-														`id` = '{$eventCache['id']}'
-											");
-										
-										/* otherwise, add this new event and cache it */
-										} else {
-											/* multi-day event instance start times need to be changed to _this_ date */
-											$start = new DateTime(iCalUtilityFunctions::_date2strdate($event->getProperty('DTSTART')));
-											$end = new DateTime(iCalUtilityFunctions::_date2strdate($event->getProperty('DTEND')));
-											if ($event->getProperty('X-RECURRENCE')) {
-												$start = new DateTime($event->getProperty('X-CURRENT-DTSTART')[1]);
-												$end = new DateTime($event->getProprty('X-CURRENT-DTEND')[1]);
-											}
-											$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-											$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-				
-											$calendarEvent = $api->post("/calendar_events",
-												array(
-													'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
-													'calendar_event[title]' => $event->getProperty('SUMMARY'),
-													'calendar_event[description]' => $event->getProperty('DESCRIPTION'),
-													'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
-													'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
-													'calendar_event[location_name]' => $event->getProperty('LOCATION')
-												)
-											);
-											$icalEventJson = json_encode($event);
-											$calendarEventJson = json_encode($calendarEvent);
-											$sql->query("
-												INSERT INTO `events`
-													(
-														`calendar`,
-														`calendar_event[id]`,
-														`event_hash`,
-														`synced`
-													)
-													VALUES (
-														'{$calendarCache['id']}',
-														'{$calendarEvent['id']}',
-														'$eventHash',
-														'" . getSyncTimestamp() . "'
-													)
-											");
+									
+									/* otherwise, add this new event and cache it */
+									} else {
+										/* multi-day event instance start times need to be changed to _this_ date */
+										$start = new DateTime(iCalUtilityFunctions::_date2strdate($event->getProperty('DTSTART')));
+										$end = new DateTime(iCalUtilityFunctions::_date2strdate($event->getProperty('DTEND')));
+										if ($event->getProperty('X-RECURRENCE')) {
+											$start = new DateTime($event->getProperty('X-CURRENT-DTSTART')[1]);
+											$end = new DateTime($event->getProprty('X-CURRENT-DTEND')[1]);
 										}
+										$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
+										$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
+			
+										$calendarEvent = $api->post("/calendar_events",
+											array(
+												'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
+												'calendar_event[title]' => $event->getProperty('SUMMARY'),
+												'calendar_event[description]' => $event->getProperty('DESCRIPTION'),
+												'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
+												'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
+												'calendar_event[location_name]' => $event->getProperty('LOCATION')
+											)
+										);
+										$icalEventJson = json_encode($event);
+										$calendarEventJson = json_encode($calendarEvent);
+										$sql->query("
+											INSERT INTO `events`
+												(
+													`calendar`,
+													`calendar_event[id]`,
+													`event_hash`,
+													`synced`
+												)
+												VALUES (
+													'{$calendarCache['id']}',
+													'{$calendarEvent['id']}',
+													'$eventHash',
+													'" . getSyncTimestamp() . "'
+												)
+										");
 									}
 								}
 							}
@@ -316,16 +313,16 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						   our cache database, however */
 						$log->log("Cache out-of-sync: calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.", PEAR_LOG_NOTICE);
 					} catch (Pest_ClientError $e) {
-						$messages[] = array(
-							'class' => 'error',
-							'title' => 'API Client Error',
-							'content' => '<pre>' . print_r(array(
+						$smarty->addMessage(
+							'API Client Error',
+							'<pre>' . print_r(array(
 								'Status' => $PEST->lastStatus(),
 								'Error' => $PEST->lastBody(),
 								'Verb' => $verb,
 								'URL' => $url,
 								'Data' => $data
-							), false) . '</pre>'
+							), false) . '</pre>',
+							NotificationMessage::ERROR
 						);
 						$smarty->display('page.tpl');
 						exit;
@@ -457,28 +454,28 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				$log->log('Finished sync ['. getSyncTimestamp() . ']');
 				exit;
 			} else {
-				$messages[] = array(
-					'class' => 'error',
-					'title' => 'Canvas Object  Not Found',
-					'content' => 'The object whose URL you submitted could not be found.<pre>' . print_r(array(
+				$smarty->addMessage(
+					'Canvas Object  Not Found',
+					'The object whose URL you submitted could not be found.<pre>' . print_r(array(
 						'Canvas URL' => $_REQUEST['canvas_url'],
 						'Canvas Context' => $canvasContext,
 						'Canvas Object' => $canvasObject
-					), false) . '</pre>'
+					), false) . '</pre>',
+					NotificationMessage::ERROR
 				);
 			}
 		} else {
-			$messages[] = array(
-				'class' => 'error',
-				'title' => 'ICS feed  Not Found',
-				'content' => 'The calendar whose URL you submitted could not be found.<pre>' . $_REQUEST['cal'] . '</pre>'
+			$smarty->addMessage(
+				'ICS feed  Not Found',
+				'The calendar whose URL you submitted could not be found.<pre>' . $_REQUEST['cal'] . '</pre>',
+				NotificationMessage::ERROR
 			);
 		} 
 	} else {
-		$messages[] = array(
-			'class' => 'error',
-			'title' => 'Invalid Canvas URL',
-			'content' => 'The Canvas URL you submitted could not be parsed.<pre>' . $_REQUEST['canvas_url'] . '</pre>' 
+		$smarty->addMessage(
+			'Invalid Canvas URL',
+			'The Canvas URL you submitted could not be parsed.<pre>' . $_REQUEST['canvas_url'] . '</pre>',
+			NotificationMessage::ERROR
 		);
 		$smarty->display('page.tpl');
 		exit;
