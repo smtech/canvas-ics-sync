@@ -210,8 +210,8 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				   ICS feed, caching changes in the database */
 				// TODO: would it be worth the performance improvement to just process things from today's date forward? (i.e. ignore old items, even if they've changed...)
 				// FIXME: Arbitrarily selecting events in for a year on either side of today's date, probably a better system?
-				foreach ($ics->selectComponents( date('Y')-1, date('m'), date('d'), date('Y')+1, date('m'), date('d'), false, false, true, true) as $years) {
-					foreach ($months as $month => $days) {
+				foreach ($ics->selectComponents( date('Y')-1, date('m'), date('d'), date('Y')+1, date('m'), date('d'), false, false, true, true) as $year) {
+					foreach ($year as $month => $days) {
 						foreach ($days as $day => $events) {
 							foreach ($events as $i => $event) {
 			
@@ -253,7 +253,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 										$end = new DateTime(iCalUtilityFunctions::_date2strdate($event->getProperty('DTEND')));
 										if ($event->getProperty('X-RECURRENCE')) {
 											$start = new DateTime($event->getProperty('X-CURRENT-DTSTART')[1]);
-											$end = new DateTime($event->getProprty('X-CURRENT-DTEND')[1]);
+											$end = new DateTime($event->getProperty('X-CURRENT-DTEND')[1]);
 										}
 										$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
 										$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
