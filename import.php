@@ -1,24 +1,6 @@
 <?php
 
-/***********************************************************************
- *                                                                     *
- * Requirements & includes                                              *
- *                                                                     *
- ***********************************************************************/
- 
-/* REQUIRES crontab
-   http://en.wikipedia.org/wiki/Cron */
-
 require_once('common.inc.php');
-
-define('VALUE_OVERWRITE_CANVAS_CALENDAR', 'overwrite');
-define('VALUE_ENABLE_REGEXP_FILTER', 'enable_filter');
-	
-//TODO: make this warning more accurate and (perhaps) less scary
-define('WARNING_SYNC', '<em>Warning:</em> The sync will not overwrite existing events in Canvas (so: no merge). <em>Only</em> changes made in the original ICS calendar feed will be synced. Changes made in Canvas will be ignored (and, if the event is changed in the calendar feed subsequently, overwritten). <em>Only</em> additions made in the calendar feed will be synced. Additions made in Canvas will not be part of the sync (and will never be affected by the sync). <em>Only</em> deletions made in the calendar feed will be synced. Deletions made in Canvas will be ignored (and, if the event is subsequently changed in the calendar feed, it will be resynced to Canvas).
-');
-
-define('WARNING_REGEXP_FILTER', '<em>Note:</em> The regular expression match is applied to the <em>title</em> of an event <em>only</em>, and the event must both match the include regular expression <em>and</em> not match the exclude regular expression to be included. Note also that the regular expressions are <em>case-sensitive</em>.');
 
 if (isset($argc)) {
 	$_REQUEST['cal'] = urldecode($argv[1]);
@@ -82,10 +64,7 @@ function getCanvasContext($canvasUrl) {
  **/
 function filterEvent($event, $calendarCache) {
 	
-	/* strip HTML tags from the event title */
-	$event->setProperty('SUMMARY', strip_tags($event->getProperty('SUMMARY')));
-				
- 	if (
+ 	return (
 	 	// include this event if filtering is off...
  		$calendarCache['enable_regexp_filter'] == false ||
  		(
@@ -100,19 +79,7 @@ function filterEvent($event, $calendarCache) {
 				preg_match("%{$calendarCache['exclude_regexp']}%", $event->getProperty('SUMMARY'))
 			)
 		)
-	) {
-		// TODO: it would be even more elegant to allow regexp reformatting of titles...
-		/* strip off [bracket style] tags at the end of the event title */
-		$event->setProperty('SUMMARY', preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', $event->getProperty('SUMMARY')));	
-	
-		// TODO MarkDown parsing of description
-		/* replace newlines with <br /> to maintain formatting */
-		$event->setProperty('DESCRIPTION', str_replace( PHP_EOL , '<br />' . PHP_EOL, $event->getProperty('DESCRIPTION')));
-	
-		return $event;
-	}
-
-	return false;
+	);
 }
 
 // TODO: it would be nice to be able to cleanly remove a synched calendar
@@ -217,12 +184,9 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 			
 								/* does this event already exist in Canvas? */
 								$eventHash = getEventHash($event);
-								
-								/* filter event -- clean up formatting and check for regexp filtering */
-								$event = filterEvent($event, $calendarCache);
-			
+											
 								/* if the event should be included... */
-								if ($event) {
+								if (filterEvent($event, $calendarCache)) {
 									
 									/* have we cached this event already? */
 									$eventCacheResponse = $sql->query("
@@ -257,19 +221,18 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 										}
 										$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
 										$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-			
+										
 										$calendarEvent = $api->post("/calendar_events",
 											array(
 												'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
-												'calendar_event[title]' => $event->getProperty('SUMMARY'),
-												'calendar_event[description]' => $event->getProperty('DESCRIPTION'),
+												'calendar_event[title]' => preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', strip_tags($event->getProperty('SUMMARY'))),
+												'calendar_event[description]' => \Michelf\Markdown::defaultTransform(str_replace('\n', "\n\n", $event->getProperty('DESCRIPTION', 1))),
 												'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
 												'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
 												'calendar_event[location_name]' => $event->getProperty('LOCATION')
 											)
 										);
-										$icalEventJson = json_encode($event);
-										$calendarEventJson = json_encode($calendarEvent);
+
 										$sql->query("
 											INSERT INTO `events`
 												(
@@ -480,109 +443,6 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 		$smarty->display('page.tpl');
 		exit;
 	}	
-} else {
-	/* display form to collect target and source URLs */
-	// TODO: add javascript to force selection of overwrite if a recurring sync is selected
-$smarty->assign('content', '
-<style><!--
-	.calendarUrl {
-		background-color: #c3d3df;
-		padding: 20px;
-		min-width: 200px;
-		width: 50%;
-		border-radius: 20px;
-	}
-	
-	#arrow {
-		padding: 0px 20px;
-	}
-	
-	#arrow input[type=submit] {
-		appearance: none;
-		font-size: 48pt;
-	}
-	
-	td {
-		padding: 20px;
-	}
-	
-	.code {
-		font-family: Inconsolata, Monaco, "Courier New", Courier, monospace;
-		width: 20em;
-	}
-	
-	#crontab-section, #tag-filter-section {
-		visibility: hidden;
-		margin-top: 0px;
-	}
---></style>
-<script type="text/javascript"><!--' . "
-
-var crontabSection = '<label for=\"crontab\">Custom Sync Schedule <span class=\"comment\"><em>Warning:</em> Not for the faint of heart! Enter a valid crontab time specification. For more information, <a target=\"_blank\" href=\"http://www.linuxweblog.com/crotab-tutorial\">refer to this tutorial.</a></span></label><input id=\"crontab\" name=\"crontab\" type=\"text\" class=\"code\" value=\"0 0 * * *\" />';
-
-var tagFilterSection = '<label for=\"include_regexp\">Regular expression to include <span class=\"comment\">A regular expression to include in the import (e.g. <code>.*</code>). " . WARNING_REGEXP_FILTER . "</span></label><input id=\"include_regexp\" name=\"include_regexp\" class=\"code\" type=\"text\" value=\".*\" /><label for=\"exclude_regexp\">Regular expression to exclude <span class=\"comment\">A regular expression to exclude from the import (e.g. <code>((\\\[PAR\\\])|(\\\[FAC\\\]))</code>). " . WARNING_REGEXP_FILTER . "</span></label><input id=\"exclude_regexp\" name=\"exclude_regexp\" class=\"code\" type=\"text\" />';
-
-function toggleVisibility(target, visibleTrigger, innerHTML) {
-	var targetElement = document.getElementById(target);
-	if (visibleTrigger) {
-		targetElement.style.visibility = 'visible';
-		targetElement.innerHTML = innerHTML;
-	} else {
-		targetElement.style.visibility = 'hidden';
-		targetElement.innerHTML = '';
-	}
-}
-" . '//--></script>
-<form enctype="multipart/form-data" action="' . $_SERVER['PHP_SELF'] . '" method="get">
-	<table>
-		<tr valign="middle">
-			<td class="calendarUrl">
-				<label for="cal">ICS Feed URL <span class="comment">If you are using a Google Calendar, we recommend that you use the private ICAL link, which will include full information about each event. Note that all ICS URLs must be publicly accessible, requiring no authentication.</span></label>
-				<input id="cal" name="cal" type="text" />
-			</td>
-			<td id="arrow">
-				<input type="submit" value="&rarr;" onsubmit="if (this.getAttribute(\'submitted\')) return false; this.setAttribute(\'submitted\',\'true\'); this.setAttribute(\'enabled\', \'false\');" />
-			</td>
-			<td class="calendarUrl">
-				<label for="canvas_url">Canvas URL<span class="comment">URL for the user/group/course whose calendar will be updated</span></label>
-				<input id="canvas_url" name="canvas_url" type="text" />
-			</td>
-		</tr>
-		<tr>
-			<td colspan="3">
-				<dl>
-					<dt>
-						<label for="overwrite"><input id="overwrite" name="overwrite" type="checkbox" value="' . VALUE_OVERWRITE_CANVAS_CALENDAR . '" unchecked disabled /> Replace existing calendar information <span class="comment">Checking this box will <em>delete</em> all of your current Canvas calendar information for this user/group/course.</span></label>
-					</dt>
-					<dt>
-						<label for="enable_regexp_filter"><input id="enable_regexp_filter" name="enable_regexp_filter" type="checkbox" value="' . VALUE_ENABLE_REGEXP_FILTER . '" onChange="toggleVisibility(\'tag-filter-section\', this.checked, tagFilterSection);" />Filter event by regular expression <span class="comment">Filter calendar events with a regular expression on their title (e.g. <code>.* Classes</code>).</span></label>
-					</dt>
-					<dd>
-						<div id="tag-filter-section" onLoad="toggleVisibility(this.id, document.getElementById(\'enable_regexp_filter\').checked, tagFilterSection);"></div>
-					</dd>
-				<dl>
-					<dt>
-						<label for="schedule">Schedule automatic updates from this feed to this course <span class="comment">' . WARNING_SYNC . '</span></label>
-						<select id="schedule" name="sync" onChange="toggleVisibility(\'crontab-section\', this.value == \'' . SCHEDULE_CUSTOM . '\', crontabSection);">
-							<option value="' . SCHEDULE_ONCE . '">One-time import only</option>
-							<optgroup label="Recurring">
-								<option value="' . SCHEDULE_WEEKLY . '">Weekly (Saturday at midnight)</option>
-								<option value="' . SCHEDULE_DAILY . '">Daily (at midnight)</option>
-								<option value="' . SCHEDULE_HOURLY . '">Hourly (at the top of the hour)</option>
-								<option value="' . SCHEDULE_CUSTOM . '">Custom (define your own schedule)</option>
-							</optgroup>
-						</select>
-					</dt>
-					<dd>
-						<div id="crontab-section" onLoad="toggleVisibility(this.id, document.getElementById(\'schedule\').value == \'' . SCHEDULE_CUSTOM . '\', crontabSection);"></div>
-					</dd>
-				</dl>
-			</td>
-		</tr>
-	</table>
-</form>
-	');
-	$smarty->display('page.tpl');
 }
 
 ?>

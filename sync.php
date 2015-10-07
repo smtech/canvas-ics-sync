@@ -20,7 +20,7 @@ while($schedule = $schedulesResponse->fetch_assoc()) {
 				`id` = '{$schedule['calendar']}'
 	");
 	if ($calendar = $calendarResponse->fetch_assoc()) {
-		shell_exec('curl -u ' . $secrets->mysql->user . ':' . $secrets->mysql->password . ' -k "https://skunkworks.stmarksschool.org/canvas/ics-sync/import.php?cal=' . urlencode($calendar['ics_url']) . '&canvas_url=' . urlencode($calendar['canvas_url']) . '&schedule=' . urlencode($schedule['id']) . '"');
+		shell_exec('curl -u ' . $secrets->mysql->user . ':' . $secrets->mysql->password . ' -k "' . $metadata['APP_URL'] . '/import.php?cal=' . urlencode($calendar['ics_url']) . '&canvas_url=' . urlencode($calendar['canvas_url']) . '&schedule=' . urlencode($schedule['id']) . '"');
 	}
 }
 

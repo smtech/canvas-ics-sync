@@ -29,7 +29,8 @@
 		"battis/appmetadata": "~1.0",
 		"spvsoftwareproducts/LTI_Tool_Provider": "~2.5",
 		"pear/log": "~1.12",
-		"kigkonsult/icalcreator": "dev-master"
+		"kigkonsult/icalcreator": "dev-master",
+		"michelf/php-markdown": "~1.5"
 	},
 	"autoload": {
 		"classmap": [""]

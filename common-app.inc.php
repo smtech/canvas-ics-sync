@@ -25,6 +25,9 @@ define('SEPARATOR', '_'); // used when concatenating information in the cache da
 define('CANVAS_TIMESTAMP_FORMAT', 'Y-m-d\TH:iP');
 define('SYNC_TIMESTAMP_FORMAT', 'Y-m-d\TH:iP'); // same as CANVAS_TIMESTAMP_FORMAT, FWIW
 
+define('VALUE_OVERWRITE_CANVAS_CALENDAR', 'overwrite');
+define('VALUE_ENABLE_REGEXP_FILTER', 'enable_filter');
+
 /* cache database tables */
 
 /* calendars
@@ -61,11 +64,41 @@ function getPairingHash($icsUrl, $canvasContext) {
 	return md5($icsUrl . $canvasContext . $metadata['CANVAS_INSTANCE_URL']);
 }
 
+$FIELD_MAP = array(
+	'calendar_event[title]' => 'SUMMARY',
+	'calendar_event[description]' => 'DESCRIPTION',
+	'calendar_event[start_at]' => array (
+		0 => 'X-CURRENT-DTSTART',
+		1 => 'DTSTART'
+	),
+	'calendar_event[end_at]' => array(
+		0 => 'X-CURRENT-DTEND',
+		1 => 'DTEND'
+	),
+	'calendar_event[location_name]' => 'LOCATION'
+);
+
 /**
  * Generate a hash of this version of an event to cache in the database
  **/
 function getEventHash($event) {
-	return md5(serialize($event));
+	global $FIELD_MAP;
+	$blob = '';
+	foreach ($FIELD_MAP as $field) {
+		if (is_array($field)) {
+			foreach ($field as $option) {
+				if (!empty($property = $event->getProperty($option))) {
+					$blob .= serialize($property);
+					break;
+				}
+			}
+		} else {
+			if (!empty($property = $event->getProperty($field))) {
+				$blob .= serialize($property);
+			}
+		}
+	}
+	return md5($blob);
 }
 
 /**

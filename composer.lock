@@ -4,20 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c5de3f8f65410b450ab0a299485cec5a",
+    "hash": "a157140a387e30ae2631762483a077eb",
+    "content-hash": "5d9fd1caa181fbb75ddca47f27287080",
     "packages": [
         {
             "name": "battis/appmetadata",
-            "version": "v1.1.1",
+            "version": "v1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/battis/appmetadata.git",
-                "reference": "99d3cbd11d615e94355f409de88240752e906ee7"
+                "reference": "9326536ba3492660f22ba955c68643b26bceb057"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/battis/appmetadata/zipball/99d3cbd11d615e94355f409de88240752e906ee7",
-                "reference": "99d3cbd11d615e94355f409de88240752e906ee7",
+                "url": "https://api.github.com/repos/battis/appmetadata/zipball/9326536ba3492660f22ba955c68643b26bceb057",
+                "reference": "9326536ba3492660f22ba955c68643b26bceb057",
                 "shasum": ""
             },
             "type": "library",
@@ -37,7 +38,7 @@
                 }
             ],
             "description": "An object to store app metadata backed by a MySQL table",
-            "time": "2015-08-17 19:58:28"
+            "time": "2015-10-05 16:46:06"
         },
         {
             "name": "battis/data-utilities",
@@ -202,6 +203,57 @@
             "time": "2015-07-28 18:59:39"
         },
         {
+            "name": "michelf/php-markdown",
+            "version": "1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/michelf/php-markdown.git",
+                "reference": "e1aabe18173231ebcefc90e615565742fc1c7fd9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/e1aabe18173231ebcefc90e615565742fc1c7fd9",
+                "reference": "e1aabe18173231ebcefc90e615565742fc1c7fd9",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-lib": "1.4.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Michelf": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "John Gruber",
+                    "homepage": "http://daringfireball.net/"
+                },
+                {
+                    "name": "Michel Fortin",
+                    "email": "michel.fortin@michelf.ca",
+                    "homepage": "https://michelf.ca/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PHP Markdown",
+            "homepage": "https://michelf.ca/projects/php-markdown/",
+            "keywords": [
+                "markdown"
+            ],
+            "time": "2015-03-01 12:03:08"
+        },
+        {
             "name": "pear/log",
             "version": "1.12.9",
             "source": {
@@ -315,12 +367,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smarty-php/smarty.git",
-                "reference": "bfcffb009aa8ead7e77290115d5c9d652588b3e4"
+                "reference": "64464e8fbe79e9e314cf9406299cc3c2c22233d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/bfcffb009aa8ead7e77290115d5c9d652588b3e4",
-                "reference": "bfcffb009aa8ead7e77290115d5c9d652588b3e4",
+                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/64464e8fbe79e9e314cf9406299cc3c2c22233d9",
+                "reference": "64464e8fbe79e9e314cf9406299cc3c2c22233d9",
                 "shasum": ""
             },
             "require": {
@@ -362,7 +414,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2015-09-01 00:52:09"
+            "time": "2015-09-19 17:55:14"
         },
         {
             "name": "smtech/canvaspest",
