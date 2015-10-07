@@ -1,5 +1,5 @@
 <?php
-
+	
 require_once('common.inc.php');
 
 // FIXME: should filter so that the syncs for the server we're running against (INDEX_WEB_PATH) are called (or is that already happening?)
@@ -7,7 +7,7 @@ $schedulesResponse = $sql->query("
 	SELECT *
 		FROM `schedules`
 		WHERE
-			`schedule` = '" . $sql->real_escape_string($argv[INDEX_SCHEDULE]) . "'
+			`schedule` = '" . $sql->real_escape_string($argv[1]) . "'
 		ORDER BY
 			`synced` ASC
 ");
@@ -20,7 +20,7 @@ while($schedule = $schedulesResponse->fetch_assoc()) {
 				`id` = '{$schedule['calendar']}'
 	");
 	if ($calendar = $calendarResponse->fetch_assoc()) {
-		shell_exec('curl -u ' . $secrets->mysql->user . ':' . $secrets->mysql->password . ' -k "' . $metadata['APP_URL'] . '/import.php?cal=' . urlencode($calendar['ics_url']) . '&canvas_url=' . urlencode($calendar['canvas_url']) . '&schedule=' . urlencode($schedule['id']) . '"');
+		shell_exec('php ' . __DIR__ . '/import.php ' . $calendar['ics_url'] . ' ' . $calendar['canvas_url'] . ' ' . $schedule['id']);
 	}
 }
 

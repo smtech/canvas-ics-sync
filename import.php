@@ -3,9 +3,12 @@
 require_once('common.inc.php');
 
 if (isset($argc)) {
-	$_REQUEST['cal'] = urldecode($argv[1]);
-	$_REQUEST['canvas_url'] = urldecode($argv[2]);
-	$_REQUEST['schedule'] = urldecode($argv[3]);
+	$_REQUEST['cal'] = $argv[1];
+	$_REQUEST['canvas_url'] = $argv[2];
+	$_REQUEST['schedule'] = $argv[3];
+	
+	require_once('common-app.inc.php');
+	$api = new CanvasPest($metadata['CANVAS_API_URL'], $metadata['CANVAS_API_TOKEN']);
 }
 
 /**
@@ -105,11 +108,13 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				$log->log('Sync started [' . getSyncTimestamp() . ']', PEAR_LOG_INFO);
 			
 				/* tell users that it's started and to cool their jets */
-				$smarty->assign('content', '
-					<h3>Calendar Import Started</h3>
-					<p>The calendar import that you requested has begun. You may leave this page at anytime. You can see the progress of the import by visiting <a target="_blank" href="https://' . parse_url($metadata['CANVAS_INSTANCE_URL'], PHP_URL_HOST) . "/calendar?include_contexts={$canvasContext['context']}_{$canvasObject['id']}\">this calendar</a> in Canvas.</p>"
-				);
-				$smarty->display('page.tpl');
+				if (php_sapi_name() != 'cli') {
+					$smarty->assign('content', '
+						<h3>Calendar Import Started</h3>
+						<p>The calendar import that you requested has begun. You may leave this page at anytime. You can see the progress of the import by visiting <a target="_blank" href="https://' . parse_url($metadata['CANVAS_INSTANCE_URL'], PHP_URL_HOST) . "/calendar?include_contexts={$canvasContext['context']}_{$canvasObject['id']}\">this calendar</a> in Canvas.</p>"
+					);
+					$smarty->display('page.tpl');
+				}
 				
 				/* parse the ICS feed */
 				$ics = new vcalendar(
@@ -276,7 +281,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						   our cache database, however */
 						$log->log("Cache out-of-sync: calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.", PEAR_LOG_NOTICE);
 					} catch (Pest_ClientError $e) {
-						$smarty->addMessage(
+						postMessage(
 							'API Client Error',
 							'<pre>' . print_r(array(
 								'Status' => $PEST->lastStatus(),
@@ -287,7 +292,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							), false) . '</pre>',
 							NotificationMessage::ERROR
 						);
-						$smarty->display('page.tpl');
+						if (php_sapi_name() != 'cli') $smarty->display('page.tpl');
 						exit;
 					}
 					$sql->query("
@@ -307,47 +312,10 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 								`id` = '{$_REQUEST['schedule']}'
 					");
 				}
-				
 				/* are we setting up a regular synchronization? */
 				if (isset($_REQUEST['sync']) && $_REQUEST['sync'] != SCHEDULE_ONCE) {
-					$shellArguments[INDEX_COMMAND] = dirname(__FILE__) . '/sync.sh';
-					$shellArguments[INDEX_SCHEDULE] = $_REQUEST['sync'];
-					$shellArguments[INDEX_WEB_PATH] = 'http://localhost' . dirname($_SERVER['PHP_SELF']);
-					$crontab = null;
-					switch ($_REQUEST['sync']) {
-						case SCHEDULE_WEEKLY: {
-							$crontab = '0 0 * * 0';
-							break;
-						}
-						case SCHEDULE_DAILY: {
-							$crontab = '0 0 * * *';
-							break;
-						}
-						case SCHEDULE_HOURLY: {
-							$crontab = '0 * * * *';
-							break;
-						}
-						case SCHEDULE_CUSTOM: {
-							$shellArguments[INDEX_SCHEDULE] = md5($_REQUEST['crontab'] . getSyncTimestamp());
-							$crontab = trim($_REQUEST['crontab']);
-						}
-					}
 					
-					/* schedule crontab trigger, if it doesn't already exist */
-					$crontab .= ' ' . implode(' ', $shellArguments);
-					
-					/* thank you http://stackoverflow.com/a/4421284 ! */
-					$crontabs = shell_exec('crontab -l');
-					/* check to see if this sync is already scheduled */
-					if (strpos($crontabs, $crontab) === false) {
-						$filename = md5(getSyncTimestamp()) . '.txt';
-						file_put_contents("/tmp/$filename", $crontabs . $crontab . PHP_EOL);
-						shell_exec("crontab /tmp/$filename");
-						$log->log("added new schedule '" . $shellArguments[INDEX_SCHEDULE] . "' to crontab", PEAR_LOG_INFO);
-					}
-					
-					/* try to make sure that we have execute access to sync.sh */
-					chmod('sync.sh', 0775);
+					// FIXME CRON SYNC SETUP GOES HERE
 	
 					/* add to the cache database schedule, replacing any schedules for this
 					   calendar that are already there */
@@ -417,7 +385,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				$log->log('Finished sync ['. getSyncTimestamp() . ']');
 				exit;
 			} else {
-				$smarty->addMessage(
+				postMessage(
 					'Canvas Object  Not Found',
 					'The object whose URL you submitted could not be found.<pre>' . print_r(array(
 						'Canvas URL' => $_REQUEST['canvas_url'],
@@ -428,19 +396,19 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				);
 			}
 		} else {
-			$smarty->addMessage(
+			postMessage(
 				'ICS feed  Not Found',
 				'The calendar whose URL you submitted could not be found.<pre>' . $_REQUEST['cal'] . '</pre>',
 				NotificationMessage::ERROR
 			);
 		} 
 	} else {
-		$smarty->addMessage(
+		postMessage(
 			'Invalid Canvas URL',
 			'The Canvas URL you submitted could not be parsed.<pre>' . $_REQUEST['canvas_url'] . '</pre>',
 			NotificationMessage::ERROR
 		);
-		$smarty->display('page.tpl');
+		if (php_sapi_name() != 'cli') $smarty->display('page.tpl');
 		exit;
 	}	
 }
