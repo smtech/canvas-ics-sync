@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "581292ea9f0738207577c252f5f99cea",
-    "content-hash": "fc2dc3aade12352a52d7a037eeb5f0fc",
+    "hash": "fa6b1fb73508df59523c19dd20c58715",
+    "content-hash": "cd38e0418548dbf260dca32b7612778f",
     "packages": [
         {
             "name": "battis/appmetadata",
@@ -904,10 +904,10 @@
         },
         {
             "name": "spvsoftwareproducts/LTI_Tool_Provider",
-            "version": "2.5.00",
+            "version": "2.5.01",
             "dist": {
                 "type": "zip",
-                "url": "http://projects.oscelot.org/gf/download/frsrelease/924/5882/LTI_Tool_Provider-2.5.00.zip",
+                "url": "http://projects.oscelot.org/gf/download/frsrelease/956/6025/LTI_Tool_Provider-2.5.01.zip",
                 "reference": null,
                 "shasum": null
             },
