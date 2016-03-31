@@ -94,8 +94,6 @@ function filterEvent($event, $calendarCache) {
    object)? */
 if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 
-	// TODO: need to do OAuth here, so that users are forced to authenticate to verify that they have permission to update these calendars!
-	
 	if ($canvasContext = getCanvasContext($_REQUEST['canvas_url'])) {
 		/* check ICS feed to be sure it exists */
 		if(urlExists($_REQUEST['cal'])) {
@@ -105,7 +103,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				/* calculate the unique pairing ID of this ICS feed and canvas object */
 				$pairingHash = getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
 				$log = Log::singleton('file', "logs/$pairingHash.log");
-				$log->log('Sync started [' . getSyncTimestamp() . ']', PEAR_LOG_INFO);
+				postMessage('Sync started', getSyncTimestamp(), NotificationMessage::INFO);
 			
 				/* tell users that it's started and to cool their jets */
 				if (php_sapi_name() != 'cli') {
@@ -279,7 +277,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						/* if the event has been deleted in Canvas, we'll get an error when
 						   we try to delete it a second time. We still need to delete it from
 						   our cache database, however */
-						$log->log("Cache out-of-sync: calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.", PEAR_LOG_NOTICE);
+						postMessage('Cache out-of-sync', "calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.", NotificationMessage::INFO);
 					} catch (Pest_ClientError $e) {
 						postMessage(
 							'API Client Error',
@@ -345,7 +343,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 								$filename = md5(getSyncTimestamp()) . '.txt';
 								file_put_contents("/tmp/$filename", $crontabs);
 								shell_exec("crontab /tmp/$filename");
-								$log-log("removed unused schedule '{$schedule['schedule']}' from crontab", PEAR_LOG_INFO);
+								postMessage('Unused schedule', "removed schedule '{$schedule['schedule']}' from crontab", NotificationMessage::INFO);
 							}
 						
 							$sql->query("
@@ -382,7 +380,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				
 				// TODO: deal with messaging based on context
 			
-				$log->log('Finished sync ['. getSyncTimestamp() . ']');
+				postMessage('Finished sync', getSyncTimestamp(), NotificationMessage::INFO);
 				exit;
 			} else {
 				postMessage(

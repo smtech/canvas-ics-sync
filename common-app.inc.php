@@ -1,5 +1,5 @@
 <?php
-
+	
 if (isset($_SESSION['toolProvider']->user)) {
 	$_SESSION['canvasInstanceUrl'] = 'https://' . $_SESSION['toolProvider']->user->getResourceLink()->settings['custom_canvas_api_domain'];
 } else {
@@ -54,9 +54,22 @@ define('VALUE_ENABLE_REGEXP_FILTER', 'enable_filter');
 	modified	timestamp of last modification of the record
 */
 
-function postMessage($subject, $body, $flag) {
+$FIRST_RUN = true;
+function postMessage($subject, $body, $flag = NotificationMessage::INFO) {
+	global $log;
+	global $smarty;
+	global $FIRST_RUN;
+	if ($FIRST_RUN) {
+		var_dump($log);
+		$FIRST_RUN = false;
+	}
 	if (php_sapi_name() == 'cli') {
-		$log->log("[$flag] $subject: $body");
+		$logEntry = "[$flag] $subject: $body";
+		if (isset($log)) {
+			$log->log($logEntry);
+		} else {
+			echo "$logEntry\n";
+		}
 	} else {
 		$smarty->addMessage($subject, $body, $flag);
 	}
@@ -105,6 +118,7 @@ function getEventHash($event) {
 			}
 		}
 	}
+	postMessage(__FUNCTION__, md5($blob) . " hashed from `$blob`");
 	return md5($blob);
 }
 
