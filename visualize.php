@@ -6,14 +6,19 @@ use smtech\StMarksSmarty\StMarksSmarty;
 use Battis\ConfigXML;
 use Battis\HierarchicalSimpleCache;
 
+$smarty = StMarksSmarty::getSmarty();
+$smarty->addTemplateDir(__DIR__ . '/templates');
+
+if (empty($_REQUEST['url'])) {
+	$smarty->display('visualize-form.tpl');
+	exit;
+}
+
 $config = new ConfigXML(__DIR__ . '/secrets.xml');
 
 $sql = $config->newInstanceOf(mysqli::class, 'mysql');
 
 $cache = new HierarchicalSimpleCache($sql, basename(__FILE__, '.php'));
-
-$smarty = StMarksSmarty::getSmarty();
-$smarty->addTemplateDir(__DIR__ . '/templates');
 
 $ics = $cache->getCache($_REQUEST['url']);
 if (empty($ics)) {

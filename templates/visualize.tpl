@@ -6,12 +6,13 @@
 	<h1>ICS Visualizer</h1>
 </div>
 
+{block name="visualization"}
 <div class="container">
 	{foreach $ics as $property => $value}
 		{if $property == 'components'}		
 			<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
   			{foreach $value as $key => $component}
-  				<div class="col-sm-4">
+  				<div class="col-sm-6">
 					<div class="panel panel-default">
 						<div class="panel-heading" role="tab" id="toggle-{$key}">
 							<h4 class="panel-title">
@@ -32,9 +33,12 @@
 											{/if}
 										{/foreach}
 									</dl>
-								{else}
-									<pre>{var_dump($component, true)}</pre>
 								{/if}
+								<hr/>
+								<dl>
+									<dt>RAW</dt>
+									<dd><pre>{var_dump($component)}</pre></dd>
+								</dl>
 							</div>
 						</div>
 					</div>
@@ -45,5 +49,6 @@
 		{/if}
 	{/foreach}
 </div>
+{/block}
 
 {/block}
