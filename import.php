@@ -1,15 +1,18 @@
 <?php
 
-require_once('common.inc.php');
-
-if (isset($argc)) {
+if (php_sapi_name() == 'cli') {
+	// TODO there is a more streamlined way of doing this that escapes me just this second
 	$_REQUEST['cal'] = $argv[1];
 	$_REQUEST['canvas_url'] = $argv[2];
 	$_REQUEST['schedule'] = $argv[3];
-	
-	require_once('common-app.inc.php');
-	$api = new CanvasPest($metadata['CANVAS_API_URL'], $metadata['CANVAS_API_TOKEN']);
+
+	define ('IGNORE_LTI', true);
 }
+
+require_once 'common.inc.php';
+
+use smtech\CanvasPest\CanvasPest;
+use Battis\BootstrapSmarty\NotificationMessage;
 
 /**
  * Check to see if a URL exists
@@ -24,7 +27,7 @@ function urlExists($url) {
  **/
 function getCanvasContext($canvasUrl) {
 	global $metadata;
-	
+
 	// TODO: accept calendar2?contexts links too (they would be an intuitively obvious link to use, after all)
 	// FIXME: users aren't working
 	// TODO: it would probably be better to look up users by email address than URL
@@ -32,25 +35,25 @@ function getCanvasContext($canvasUrl) {
 	$canvasContext = array();
 	if (preg_match('%(https?://)?(' . parse_url($metadata['CANVAS_INSTANCE_URL'], PHP_URL_HOST) . '/((about/(\d+))|(courses/(\d+)(/groups/(\d+))?)|(accounts/\d+/groups/(\d+))))%', $_REQUEST['canvas_url'], $matches)) {
 		$canvasContext['canonical_url'] = "https://{$matches[2]}"; // https://stmarksschool.instructure.com/courses/953
-		
+
 		// course or account groups
 		if (isset($matches[9]) || isset($matches[11])) {
-			$canvasContext['context'] = 'group'; // used to for context_code in events 
+			$canvasContext['context'] = 'group'; // used to for context_code in events
 			$canvasContext['id'] = ($matches[9] > $matches[11] ? $matches[9] : $matches[11]);
 			$canvasContext['verification_url'] = "groups/{$canvasContext['id']}"; // used once to look up the object to be sure it really exists
-			
+
 		// courses
 		} elseif (isset($matches[7])) {
 			$canvasContext['context'] = 'course';
 			$canvasContext['id'] = $matches[7];
 			$canvasContext['verification_url'] = "courses/{$canvasContext['id']}";
-		
+
 		// users
 		} elseif (isset($matches[5])) {
 			$canvasContext['context'] = 'user';
 			$canvasContext['id'] = $matches[5];
 			$canvasContext['verification_url'] = "users/{$canvasContext['id']}/profile";
-		
+
 		// we're somewhere where we don't know where we are
 		} else {
 			return false;
@@ -66,7 +69,7 @@ function getCanvasContext($canvasUrl) {
  * This must happen AFTER the event hash has been calculated!
  **/
 function filterEvent($event, $calendarCache) {
-	
+
  	return (
 	 	// include this event if filtering is off...
  		$calendarCache['enable_regexp_filter'] == false ||
@@ -99,12 +102,12 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 		if(urlExists($_REQUEST['cal'])) {
 			/* look up the canvas object -- mostly to make sure that it exists! */
 			if ($canvasObject = $api->get($canvasContext['verification_url'])) {
-			
+
 				/* calculate the unique pairing ID of this ICS feed and canvas object */
 				$pairingHash = getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
-				$log = Log::singleton('file', "logs/$pairingHash.log");
+				$log = Log::singleton('file', __DIR__ . "/logs/$pairingHash.log");
 				postMessage('Sync started', getSyncTimestamp(), NotificationMessage::INFO);
-			
+
 				/* tell users that it's started and to cool their jets */
 				if (php_sapi_name() != 'cli') {
 					$smarty->assign('content', '
@@ -113,7 +116,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 					);
 					$smarty->display('page.tpl');
 				}
-				
+
 				/* parse the ICS feed */
 				$ics = new vcalendar(
 					array(
@@ -122,7 +125,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 					)
 				);
 				$ics->parse();
-				
+
 				/* log this pairing in the database cache, if it doesn't already exist */
 				$calendarCacheResponse = $sql->query("
 					SELECT *
@@ -131,7 +134,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							`id` = '$pairingHash'
 				");
 				$calendarCache = $calendarCacheResponse->fetch_assoc();
-				
+
 				/* if the calendar is already cached, just update the sync timestamp */
 				if ($calendarCache) {
 					$sql->query("
@@ -166,7 +169,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							)
 					");
 				}
-				
+
 				/* refresh calendar information from cache database */
 				$calendarCacheResponse = $sql->query("
 					SELECT *
@@ -175,22 +178,34 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							`id` = '$pairingHash'
 				");
 				$calendarCache = $calendarCacheResponse->fetch_assoc();
-				
+
 				/* walk through $master_array and update the Canvas calendar to match the
 				   ICS feed, caching changes in the database */
 				// TODO: would it be worth the performance improvement to just process things from today's date forward? (i.e. ignore old items, even if they've changed...)
-				// FIXME: Arbitrarily selecting events in for a year on either side of today's date, probably a better system?
-				foreach ($ics->selectComponents( date('Y')-1, date('m'), date('d'), date('Y')+1, date('m'), date('d'), false, false, true, true) as $year) {
+				// TODO: the best window for syncing would be the term of the course in question, right?
+				// TODO: Arbitrarily selecting events in for a year on either side of today's date, probably a better system?
+				foreach ($ics->selectComponents(
+					date('Y')-1, // startYear
+					date('m'), // startMonth
+					date('d'), // startDay
+					date('Y')+1, // endYEar
+					date('m'), // endMonth
+					date('d'), // endDay
+					'vevent', // cType
+					false, // flat
+					true, // any
+					true // split
+				) as $year) {
 					foreach ($year as $month => $days) {
 						foreach ($days as $day => $events) {
 							foreach ($events as $i => $event) {
-			
+
 								/* does this event already exist in Canvas? */
 								$eventHash = getEventHash($event);
-											
+
 								/* if the event should be included... */
 								if (filterEvent($event, $calendarCache)) {
-									
+
 									/* have we cached this event already? */
 									$eventCacheResponse = $sql->query("
 										SELECT *
@@ -199,8 +214,8 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 												`calendar` = '{$calendarCache['id']}' AND
 												`event_hash` = '$eventHash'
 									");
-									
-					
+
+
 									/* if we already have the event cached in its current form, just update
 									   the timestamp */
 									$eventCache = $eventCacheResponse->fetch_assoc();
@@ -212,7 +227,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 												WHERE
 													`id` = '{$eventCache['id']}'
 										");
-									
+
 									/* otherwise, add this new event and cache it */
 									} else {
 										/* multi-day event instance start times need to be changed to _this_ date */
@@ -224,7 +239,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 										}
 										$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
 										$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
-										
+
 										$calendarEvent = $api->post("/calendar_events",
 											array(
 												'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
@@ -257,7 +272,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						}
 					}
 				}
-							
+
 				/* clean out previously synced events that are no longer correct */
 				$deletedEventsResponse = $sql->query("
 					SELECT * FROM `events`
@@ -299,7 +314,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 								`id` = '{$deletedEventCache['id']}'
 					");
 				}
-				
+
 				/* if this was a scheduled import (i.e. a sync), update that schedule */
 				if (isset($_REQUEST['schedule'])) {
 					$sql->query("
@@ -312,9 +327,9 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				}
 				/* are we setting up a regular synchronization? */
 				if (isset($_REQUEST['sync']) && $_REQUEST['sync'] != SCHEDULE_ONCE) {
-					
+
 					// FIXME CRON SYNC SETUP GOES HERE
-	
+
 					/* add to the cache database schedule, replacing any schedules for this
 					   calendar that are already there */
 					$schedulesResponse = $sql->query("
@@ -323,9 +338,9 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 							WHERE
 								`calendar` = '{$calendarCache['id']}'
 					");
-					
+
 					if ($schedule = $schedulesResponse->fetch_assoc()) {
-		
+
 						/* only need to worry if the cached schedule is different from the
 						   new one we just set */
 						if ($shellArguments[INDEX_SCHEDULE] != $schedule['schedule']) {
@@ -345,7 +360,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 								shell_exec("crontab /tmp/$filename");
 								postMessage('Unused schedule', "removed schedule '{$schedule['schedule']}' from crontab", NotificationMessage::INFO);
 							}
-						
+
 							$sql->query("
 								UPDATE `schedules`
 									SET
@@ -371,15 +386,15 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 						");
 					}
 				}
-				
+
 				/* if we're ovewriting data (for example, if this is a recurring sync, we
 				   need to remove the events that were _not_ synced this in this round */
 				if (isset($_REQUEST['overwrite']) && $_REQUEST['overwrite'] == VALUE_OVERWRITE_CANVAS_CALENDAR) {
 					// TODO: actually deal with this
 				}
-				
+
 				// TODO: deal with messaging based on context
-			
+
 				postMessage('Finished sync', getSyncTimestamp(), NotificationMessage::INFO);
 				exit;
 			} else {
@@ -399,7 +414,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				'The calendar whose URL you submitted could not be found.<pre>' . $_REQUEST['cal'] . '</pre>',
 				NotificationMessage::ERROR
 			);
-		} 
+		}
 	} else {
 		postMessage(
 			'Invalid Canvas URL',
@@ -408,7 +423,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 		);
 		if (php_sapi_name() != 'cli') $smarty->display('page.tpl');
 		exit;
-	}	
+	}
 }
 
 ?>

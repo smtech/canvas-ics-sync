@@ -1,4 +1,6 @@
 <?php
+
+define('IGNORE_LTI', true);
 	
 require_once('common.inc.php');
 
@@ -20,7 +22,7 @@ while($schedule = $schedulesResponse->fetch_assoc()) {
 				`id` = '{$schedule['calendar']}'
 	");
 	if ($calendar = $calendarResponse->fetch_assoc()) {
-		shell_exec('php ' . __DIR__ . '/import.php ' . $calendar['ics_url'] . ' ' . $calendar['canvas_url'] . ' ' . $schedule['id']);
+		echo shell_exec('php ' . __DIR__ . '/import.php ' . $calendar['ics_url'] . ' ' . $calendar['canvas_url'] . ' ' . $schedule['id']);
 	}
 }
 
