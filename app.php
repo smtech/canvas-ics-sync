@@ -1,6 +1,6 @@
 <?php
-	
-require_once('common.inc.php');
+
+require_once 'common.inc.php';
 
 $smarty->assign('name', $metadata['COURSE_NAVIGATION_LINK_TEXT']);
 $smarty->assign('category', '');
