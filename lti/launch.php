@@ -1,14 +1,9 @@
 <?php
 
-require_once('common.inc.php');
+require_once 'common.inc.php';
 
 /* clear any existing session data */
-if (session_status() === PHP_SESSION_NONE) {
-	session_start();
-}
-$_SESSION = array();
-session_destroy();
-session_start();
+$_SESSION = [];
 
 /* set up a Tool Provider (TP) object to process the LTI request */
 $toolProvider = new CanvasAPIviaLTI(LTI_Data_Connector::getDataConnector($sql));

@@ -18,7 +18,7 @@ use Battis\BootstrapSmarty\NotificationMessage;
  * @return boolean
  **/
 function midLaunch() {
-	global $metadata; // FIXME grown-ups don't program like this
+	global $metadata; // FIXME:0 grown-ups don't program like this issue:17
 	return $metadata['APP_LAUNCH_URL'] === (($_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI']);
 }
 
@@ -59,7 +59,7 @@ function initSecrets() {
  * @throws CanvasAPIviaLTI_Exception MYSQL_CONNECTION if a mysqli connection cannot be established
  **/
 function initMySql() {
-	global $secrets; // FIXME grown-ups don't program like this
+	global $secrets; // FIXME:0 grown-ups don't program like this issue:17
 	if (!($secrets instanceof SimpleXMLElement)) {
 		$secrets = initSecrets();
 	}
@@ -89,8 +89,8 @@ function initMySql() {
  * @return \Battis\AppMetadata
  **/
 function initAppMetadata() {
-	global $secrets; // FIXME grown-ups don't program like this
-	global $sql; // FIXME grown-ups don't program like this
+	global $secrets; // FIXME:0 grown-ups don't program like this issue:17
+	global $sql; // FIXME:0 grown-ups don't program like this issue:17
 
 	$metadata = new AppMetadata($sql, (string) $secrets->app->id);
 

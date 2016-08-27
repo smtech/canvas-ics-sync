@@ -22,7 +22,7 @@ define('SCHEDULE_DAILY', 'daily');
 define('SCHEDULE_HOURLY', 'hourly');
 define('SCHEDULE_CUSTOM', 'custom');
 
-define('LOCAL_TIMEZONE', 'US/Eastern'); // TODO: Can we detect the timezone for the Canvas instance and use it?
+define('LOCAL_TIMEZONE', 'US/Eastern'); // TODO:0 Can we detect the timezone for the Canvas instance and use it? issue:18
 define('SEPARATOR', '_'); // used when concatenating information in the cache database
 define('CANVAS_TIMESTAMP_FORMAT', 'Y-m-d\TH:iP');
 define('SYNC_TIMESTAMP_FORMAT', 'Y-m-d\TH:iP'); // same as CANVAS_TIMESTAMP_FORMAT, FWIW
@@ -133,8 +133,5 @@ function getSyncTimestamp() {
 		return $SYNC_TIMESTAMP;
 	}
 }
-
-$_SESSION['canvasInstanceUrl'] = 'https://' . $_SESSION['toolProvider']->user->getResourceLink()->settings['custom_canvas_api_domain'];
-$api = new CanvasPest($_SESSION['apiUrl'], $_SESSION['apiToken']);
 
 ?>

@@ -4,7 +4,7 @@ use Battis\BootstrapSmarty\NotificationMessage;
 
 /* some sample app metadata information -- review config.xml for a panoply of options */
 $metadata['APP_DESCRIPTION'] = 'Import ICS feeds into Canvas, access individual Canvas ICS feeds';
-$metadata['APP_DOMAIN'] = ''; // FIXME this needs to be defined
+$metadata['APP_DOMAIN'] = ''; // FIXME:0 this needs to be defined issue:17
 $metadata['APP_ICON_URL'] = '@APP_URL/lti/icon.png';
 $metadata['APP_LAUNCH_URL'] = '@APP_URL/lti/launch.php';
 $metadata['APP_PRIVACY_LEVEL'] = 'public'; # /public|name_only|anonymous/

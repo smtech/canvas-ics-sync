@@ -182,8 +182,8 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				/* walk through $master_array and update the Canvas calendar to match the
 				   ICS feed, caching changes in the database */
 				// TODO: would it be worth the performance improvement to just process things from today's date forward? (i.e. ignore old items, even if they've changed...)
-				// TODO: the best window for syncing would be the term of the course in question, right?
-				// TODO: Arbitrarily selecting events in for a year on either side of today's date, probably a better system?
+				// TODO:0 the best window for syncing would be the term of the course in question, right? issue:12
+				// TODO:0 Arbitrarily selecting events in for a year on either side of today's date, probably a better system? issue:12
 				foreach ($ics->selectComponents(
 					date('Y')-1, // startYear
 					date('m'), // startMonth
@@ -328,7 +328,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				/* are we setting up a regular synchronization? */
 				if (isset($_REQUEST['sync']) && $_REQUEST['sync'] != SCHEDULE_ONCE) {
 
-					// FIXME CRON SYNC SETUP GOES HERE
+					// FIXME:0 CRON SYNC SETUP GOES HERE issue:15 issue:13
 
 					/* add to the cache database schedule, replacing any schedules for this
 					   calendar that are already there */
