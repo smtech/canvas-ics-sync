@@ -10,8 +10,8 @@ $smarty = StMarksSmarty::getSmarty();
 $smarty->addTemplateDir(__DIR__ . '/templates');
 
 if (empty($_REQUEST['url'])) {
-	$smarty->display('visualize-form.tpl');
-	exit;
+    $smarty->display('visualize-form.tpl');
+    exit;
 }
 
 $config = new ConfigXML(__DIR__ . '/secrets.xml');
@@ -22,14 +22,14 @@ $cache = new HierarchicalSimpleCache($sql, basename(__FILE__, '.php'));
 
 $ics = $cache->getCache($_REQUEST['url']);
 if (empty($ics)) {
-	$ics = new vcalendar(
-		array(
-			'unique_id' => basename(__FILE__, '.php'),
-			'url' => $_REQUEST['url']
-		)
-	);
-	$ics->parse();
-	$cache->setCache($_REQUEST['url'], $ics);
+    $ics = new vcalendar(
+        array(
+            'unique_id' => basename(__FILE__, '.php'),
+            'url' => $_REQUEST['url']
+        )
+    );
+    $ics->parse();
+    $cache->setCache($_REQUEST['url'], $ics);
 }
 
 $smarty->assign('ics', $ics);

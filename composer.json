@@ -1,50 +1,48 @@
 {
 	"name": "smtech/canvas-ics-sync",
 	"description": "An LTI and service to sync Webcal/ICS feeds into and out of Canvas",
-	"license": "GPL-3.0",
-	"config": {
-		"secure-http": false
-	},
-	"repositories": [
-		{
-			"type": "package",
-			"package": {
-				"name": "spvsoftwareproducts/LTI_Tool_Provider",
-				"version": "2.5.01",
-				"dist": {
-					"url": "http://projects.oscelot.org/gf/download/frsrelease/956/6025/LTI_Tool_Provider-2.5.01.zip",
-					"type": "zip"
-				},
-				"license": "LGPL-3.0",
-				"authors": [
-					{
-						"name": "Stephen Vickers"
-					}   
-				],
-				"homepage": "http://spvsoftwareproducts.com/php/lti_tool_provider/"
-			}
-		}
-	],
-	"require": {
-		"smtech/stmarkssmarty": "dev-master",
-		"smtech/canvaspest": "~1.0",
-		"smtech/oauth-negotiator": "~1.0",
-		"battis/appmetadata": "~1.0",
-		"spvsoftwareproducts/LTI_Tool_Provider": "~2.5",
-		"pear/log": "~1.12",
-		"kigkonsult/icalcreator": "dev-master",
-		"michelf/php-markdown": "~1.5",
-		"battis/configxml": "~1.0",
-		"battis/simplecache": "~1.0"
-	},
-	"autoload": {
-		"classmap": [""]
-	},
-	"authors": [
+    "authors": [
 		{
 			"name": "Seth Battis",
 			"email": "sethbattis@stmarksschool.org"
 		}
 	],
-	"minimum-stability": "dev"
+	"license": "GPL-3.0",
+    "config": {
+        "secure-http": false
+    },
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "spvsoftwareproducts/LTI_Tool_Provider",
+                "version": "2.5.01",
+                "dist": {
+                    "url": "http://projects.oscelot.org/gf/download/frsrelease/956/6025/LTI_Tool_Provider-2.5.01.zip",
+                    "type": "zip"
+                },
+                "license": "LGPL-3.0",
+                "authors": [
+                    {
+                        "name": "Stephen Vickers"
+                    }
+                ],
+                "homepage": "http://spvsoftwareproducts.com/php/lti_tool_provider/",
+                "autoload": {
+                    "classmap": [""]
+                }
+            }
+        }
+    ],
+	"require": {
+        "smtech/stmarks-reflexive-canvas-lti": "~0.2",
+		"kigkonsult/icalcreator": "dev-master",
+		"michelf/php-markdown": "~1.5"
+	},
+	"autoload": {
+		"psr-4": {
+            "smtech\\CanvasICSSync\\": "src"
+        }
+	},
+	"minimum-stability": "stable"
 }
