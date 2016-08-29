@@ -1,0 +1,7 @@
+<phpunit bootstrap="vendor/autoload.php">
+  <testsuites>
+    <testsuite name="Calendar &#8646; ICS Sync">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
