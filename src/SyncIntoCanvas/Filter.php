@@ -22,6 +22,11 @@ class Filter
      */
     protected $exclude;
 
+    /**
+     * @param boolean $enabled
+     * @param string|null $include
+     * @param string|null $exclude
+     */
     public function __construct($enabled, $include, $exclude)
     {
         $this->setEnabled($enabled);
