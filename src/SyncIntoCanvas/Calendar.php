@@ -2,6 +2,12 @@
 
 namespace smtech\CanvasICSSync\SyncIntoCanvas;
 
+use DateTime;
+use vcalendar;
+use iCalUtilityFunctions;
+use Battis\DataUtilities;
+use Michelf\Markdown;
+
 class Calendar
 {
     /**
@@ -153,71 +159,260 @@ class Calendar
      **/
     protected function getPairingHash()
     {
-        global $metadata;
-        return md5($this->getContext() . $this->getFeedUrl());
+        return md5($this->getContext()->getCanonicalUrl() . $this->getFeedUrl());
     }
 
     public function save()
     {
-        $sql = static::getMySql();
-
+        $db = static::getDatabase();
+        $find = $db->prepare(
+            "SELECT * FROM `calendars` WHERE `id` = :id"
+        );
+        $update = $db->prepare(
+            "UPDATE `calendars`
+                SET
+                    `name` = :name,
+                    `canvas_url` = :canvas_url,
+                    `ics_url` = :ics_url,
+                    `synced` = :synced,
+                    `enable_regex_filter` = :enable_regex_filter,
+                    `include_regexp` = :include_regexp,
+                    `exclude_regexp` = :exclude_regexp
+                WHERE
+                `id` = :id"
+        );
+        $insert = $db->prepare(
+            "INSERT INTO `calendars`
+                (
+                    `id`,
+                    `name`,
+                    `canvas_url`,
+                    `ics_url`,
+                    `synced`,
+                    `enable_regex_filter`,
+                    `include_regexp`,
+                    `exclude_regexp`
+                ) VALUES (
+                    :id,
+                    :name,
+                    :canvas_url,
+                    :ics_url,
+                    :synced
+                    :enable_regex_filter,
+                    :include_regexp,
+                    :exclude_regexp
+                )"
+        );
         $params = [
-            'id' => $sql->escape_string($this->getPairingHash()),
-            'name' => $sql->escape_string($this->getName()),
-            'canvas_url' => $sql->escape_string($this->getContext()->getCanonicalUrl()),
-            'ics_url' => $sql->escape_string($this->getFeedUrl()),
+            'id' => $this->getPairingHash(),
+            'name' => $this->getName(),
+            'canvas_url' => $this->getContext()->getCanonicalUrl(),
+            'ics_url' => $this->getFeedUrl(),
+            'synced' => static::getSyncTimestamp(),
             'enable_regex_filter' => $this->getFilter()->isEnabled(),
-            'include_regexp' => $sql->escape_string($this->getFilter()->getIncludeExpression()),
-            'exclude_regexp' => $sql->escape_string($this->getFilter()->getExcludeExpression())
+            'include_regexp' => $this->getFilter()->getIncludeExpression(),
+            'exclude_regexp' => $this->getFilter()->getExcludeExpression()
         ];
-        foreach ($params as $field => $value) {
-            if (empty($value)) {
-                $params[$field] = 'NULL';
-            } else {
-                $params[$field] = "'$value'";
-            }
-        }
-        $response = static::getMySql()->query("
-            SELECT * FROM `calendars` WHERE `id` = '$_id'
-        ");
-        $previous = $response->fetch_assoc();
-        if ($previous) {
-            $query = "UPDATE `calendars` SET\n";
-            foreach ($params as $field => $value) {
-                if ($key != 'id') {
-                    $query .= "`$field` = $value\n";
-                }
-            }
-            $query .= "WHERE `id` = '{$params['id']}'";
+
+        $find->execute($params);
+        if ($find->fetch() !== false) {
+            $update->execute($params);
         } else {
-            $query = "INSERT INTO `calendars` (\n`";
-            $query .= implode('`, `', array_keys($params));
-            $query .= "`) VALUES (";
-            $query .= implode(', ', $params);
-            $query .= ')';
-        }
-        if (static::getMySql($query)->query() === false) {
-            throw new Exception(
-                "Failed to store calendar ID {$this->id} to database"
-            );
+            $insert->execute($params);
         }
     }
 
     /**
-     * Load a Calendar from the MySQL database
+     * Load a Calendar from the database
      *
      * @param int $id
      * @return Calendar
      */
     public static function load($id)
     {
-        $sql = static::getMySql();
-        $query = "SELECT * FROM `calendars` WHERE `id` = '" . $sql->escape_string($id) . "'";
-        $response = $sql->query($query);
-        if ($response) {
-            $calendar = $response->fetch_assoc();
-            return new Calendar($calendar['canvas_url'], $calendar['ics_url'], $calendar['enable_regex_filter'], $calendar['include_regexp'], $calendar['exclude_regexp']);
+        $find = static::getDatabase()->prepare(
+            "SELECT * FROM `calendars` WHERE `id` = :id"
+        );
+        $find->execute($id);
+        if (($calendar = $find->fetch()) !== false) {
+            return new Calendar(
+                $calendar['canvas_url'],
+                $calendar['ics_url'],
+                $calendar['enable_regex_filter'],
+                $calendar['include_regexp'],
+                $calendar['exclude_regexp']
+            );
         }
         return null;
+    }
+
+    public function import(Log $log)
+    {
+        $db = static::getDatabase();
+        $api = static::getApi();
+
+        /*
+         * This will throw an exception if it's not found
+         */
+        $canvasObject = $api->get($this->getContext()->getVerificationUrl());
+
+        if (!DataUtilities::URLexists($this>getFeedUrl())) {
+            throw new Exception(
+                "Cannot sync calendars with a valid calendar feed"
+            );
+        }
+
+        if ($log) {
+            $log->log(static::getSyncTimestamp() . ' sync started', PEAR_LOG_INFO);
+        }
+        $this->save();
+
+        $ics = new vcalendar([
+            'unique_id' => __FILE__,
+            'url' => $this->getFeedUrl()
+        ]);
+        $ics->parse();
+
+        /*
+         * TODO: would it be worth the performance improvement to just process
+         *     things from today's date forward? (i.e. ignore old items, even
+         *     if they've changed...)
+         */
+        /*
+         * TODO:0 the best window for syncing would be the term of the course
+         *     in question, right? issue:12
+         */
+        /*
+         * TODO:0 Arbitrarily selecting events in for a year on either side of
+         *     today's date, probably a better system? issue:12
+         */
+        foreach ($ics->selectComponents(
+            date('Y')-1, // startYear
+            date('m'), // startMonth
+            date('d'), // startDay
+            date('Y')+1, // endYEar
+            date('m'), // endMonth
+            date('d'), // endDay
+            'vevent', // cType
+            false, // flat
+            true, // any
+            true // split
+        ) as $year) {
+            foreach ($year as $month => $days) {
+                foreach ($days as $day => $events) {
+                    foreach ($events as $i => $_event) {
+                        $event = new Event($_event, $this->getPairingHash());
+                        if ($this->getFilter()->filterEvent($event)) {
+                            $eventCache = Event::load($this->getPairingHash(), $eventHash);
+                            if (empty($eventCache)) {
+                                /* multi-day event instance start times need to be changed to _this_ date */
+                                $start = new DateTime(
+                                    iCalUtilityFunctions::_date2strdate(
+                                        $event->getProperty('DTSTART')
+                                    )
+                                );
+                                $end = new DateTime(
+                                    iCalUtilityFunctions::_date2strdate(
+                                        $event->getProperty('DTEND')
+                                    )
+                                );
+                                if ($event->getProperty('X-RECURRENCE')) {
+                                    $start = new DateTime($event->getProperty('X-CURRENT-DTSTART')[1]);
+                                    $end = new DateTime($event->getProperty('X-CURRENT-DTEND')[1]);
+                                }
+                                $start->setTimeZone(new DateTimeZone(Constants::LOCAL_TIMEZONE));
+                                $end->setTimeZone(new DateTimeZone(Constants::LOCAL_TIMEZONE));
+
+                                try {
+                                    $calendarEvent = $api->post(
+                                        "/calendar_events",
+                                        [
+                                            'calendar_event' => [
+                                                'context_code' => $this->getContext() . "_{$canvasObject['id']}",
+                                                'title' => preg_replace(
+                                                    '%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%',
+                                                    '\\1',
+                                                    strip_tags($event->getProperty('SUMMARY'))
+                                                ),
+                                                'description' => Markdown::defaultTransform(str_replace(
+                                                    '\n',
+                                                    "\n\n",
+                                                    $event->getProperty('DESCRIPTION', 1)
+                                                )),
+                                                'start_at' => $start->format(Constants::CANVAS_TIMESTAMP_FORMAT),
+                                                'end_at' => $end->format(Constants::CANVAS_TIMESTAMP_FORMAT),
+                                                'location_name' => $event->getProperty('LOCATION')
+                                            ]
+                                        ]
+                                    );
+                                } catch (Exception $e) {
+                                    if ($log) {
+                                        $log->log($e->getMessage(), PEAR_LOG_ERR);
+                                    } else {
+                                        throw $e;
+                                    }
+                                }
+
+                                $eventCache = new Event($this->getPairingHash(), $canvasObject['id'], $eventHash);
+                            }
+                            $eventCache->save();
+                        }
+                    }
+                }
+            }
+        }
+
+        $findDeletedEvents = $db->prepare(
+            "SELECT *
+                FROM `events`
+                WHERE
+                    `calendar` = :calendar AND
+                    `synced` != :synced
+            "
+        );
+        $deleteCachedEvent = $db->prepare(
+            "DELETE FROM `events` WHERE `id` = :id"
+        );
+        $findDeletedEvents->execute([
+            'calendar' => $this->getPairingHash(),
+            'synced' => static::getSyncTimestamp()
+        ]);
+        if (($deletedEvents = $findDeletedEvents->fetchAll()) !== false) {
+            foreach ($deletedEvents as $eventCache) {
+                try {
+                    $api->delete(
+                        "/calendar_events/{$eventCache['calendar_event[id]']}",
+                        [
+                            'cancel_reason' => getSyncTimestamp(),
+                            /*
+                             * TODO: this feels skeevy -- like the empty string
+                             *     will break
+                             */
+                            'as_user_id' => ($this->getContext()->getContext() == 'user' ? $canvasObject['id'] : '')
+                        ]
+                    );
+                    $deleteCachedEvent->execute($eventCache['id']);
+                } catch (Pest_Unauthorized $e) {
+                    if ($log) {
+                        $log->log(
+                            "calendar_event[{$eventCache['calendar_event[id]']}] no longer exists and will be purged from cache.",
+                            PEAR_LOG_WARN
+                        );
+                    } else {
+                        throw $e;
+                    }
+                } catch (Exception $e) {
+                    if ($log) {
+                        $log->log($e->getMessage(), PEAR_LOG_ERR);
+                    } else {
+                        throw $e;
+                    }
+                }
+            }
+        }
+
+        if ($log) {
+            $log->log(static::getSyncTimestamp() . ' sync finished', PEAR_LOG_INFO);
+        }
     }
 }

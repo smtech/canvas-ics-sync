@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "489d81f83f2db9207004fb158675282f",
-    "content-hash": "fdb39fb25d747e004d826dc6dff36cfc",
+    "hash": "8ae19165bb90b96554ddd6e85d749322",
+    "content-hash": "f7e9348769be1779923da7be45480e36",
     "packages": [
         {
             "name": "battis/appmetadata",
@@ -119,16 +119,16 @@
         },
         {
             "name": "battis/data-utilities",
-            "version": "v0.1",
+            "version": "v0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/battis/data-utilities.git",
-                "reference": "9efc9d29ad23d8a3a4d0803408eefbc7f681b012"
+                "reference": "da441f33ea687283cc741e47c4b3dfb6c85804a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/battis/data-utilities/zipball/9efc9d29ad23d8a3a4d0803408eefbc7f681b012",
-                "reference": "9efc9d29ad23d8a3a4d0803408eefbc7f681b012",
+                "url": "https://api.github.com/repos/battis/data-utilities/zipball/da441f33ea687283cc741e47c4b3dfb6c85804a1",
+                "reference": "da441f33ea687283cc741e47c4b3dfb6c85804a1",
                 "shasum": ""
             },
             "require-dev": {
@@ -151,7 +151,7 @@
                 }
             ],
             "description": "A handful of useful helper functions to process data",
-            "time": "2016-07-12 14:40:23"
+            "time": "2016-09-02 02:00:58"
         },
         {
             "name": "battis/educoder-pest-fork",

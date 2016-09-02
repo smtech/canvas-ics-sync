@@ -2,7 +2,7 @@
 
 namespace smtech\CanvasICSSync\SyncIntoCanvas;
 
-use mysqli;
+use PDO;
 use smtech\CanvasPest\CanvasPest;
 
 /**
@@ -13,11 +13,11 @@ use smtech\CanvasPest\CanvasPest;
 abstract class Syncable
 {
     /**
-     * MySQL connection
+     * Database connection
      *
-     * @var mysqli|null
+     * @var PDO|null
      */
-    protected static $mysql;
+    protected static $database;
 
     /**
      * Canvas API connection
@@ -27,19 +27,43 @@ abstract class Syncable
     protected static $api;
 
     /**
+     * Unique timestamp for the current sync
+     * @var string
+     */
+    protected static $syncTimestamp;
+
+    /**
+     * Generate a unique identifier for this synchronization pass
+     **/
+    public static function getSyncTimestamp()
+    {
+        if (empty(static::$syncTimestamp)) {
+            $timestamp = new DateTime();
+            static::$syncTimestamp =
+                $timestamp->format(Constants::SYNC_TIMESTAMP_FORMAT) .
+                Constants::SEPARATOR . md5(
+                    (php_sapi_name() == 'cli' ?
+                        'cli' : $_SERVER['REMOTE_ADDR']
+                    ) . time()
+                );
+        }
+        return static::$syncTimestamp;
+    }
+
+    /**
      * Update the MySQL connection
      *
-     * @param mysqli $mysql
-     * @throws Exception If `$mysql` is null
+     * @param PDO $db
+     * @throws Exception If `$db` is null
      */
-    public static function setMySql(mysqli $mysql)
+    public static function setDatabase(PDO $database)
     {
-        if (empty($mysql)) {
+        if (empty($database)) {
             throw new Exception(
-                'A non-null MySQL connection is required'
+                'A non-null database connection is required'
             );
         } else {
-            static::$mysql = $mysql;
+            static::$database = $database;
         }
     }
 
@@ -48,9 +72,9 @@ abstract class Syncable
      *
      * @return mysqli
      */
-    public static function getMySql()
+    public static function getDatabase()
     {
-        return static::$mysql;
+        return static::$db;
     }
 
     /**
@@ -91,7 +115,7 @@ abstract class Syncable
      * Load a syncable object from the MySQL database
      *
      * @param int $id
-     * @return Syncable
+     * @return Syncable|null
      */
     abstract public static function load($id);
 }

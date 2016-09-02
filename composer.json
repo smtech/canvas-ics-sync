@@ -37,6 +37,7 @@
 	"require": {
         "smtech/stmarks-reflexive-canvas-lti": "~0.2",
         "pear/log": "~1.0",
+        "battis/data-utilities": "^0.1.1",
 		"kigkonsult/icalcreator": "dev-master",
         "myclabs/php-enum": "~1.4",
 		"michelf/php-markdown": "~1.5"

@@ -105,6 +105,6 @@ class CalendarContext
 
     public function __toString()
     {
-        return $this->getCanonicalUrl();
+        return $this->getContext();
     }
 }
