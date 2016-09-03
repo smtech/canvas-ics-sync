@@ -285,10 +285,10 @@ class Calendar
          *     today's date, probably a better system? issue:12
          */
         foreach ($ics->selectComponents(
-            date('Y')-1, // startYear
+            date('Y') - 1, // startYear
             date('m'), // startMonth
             date('d'), // startDay
-            date('Y')+1, // endYEar
+            date('Y') + 1, // endYEar
             date('m'), // endMonth
             date('d'), // endDay
             'vevent', // cType

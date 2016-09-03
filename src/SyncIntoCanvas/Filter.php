@@ -76,17 +76,17 @@ class Filter
             // include this event if filtering is off...
             $this->isEnabled() == false ||
             (
-               (
-                   ( // if filtering is on, and there's an include pattern test that pattern...
-                       $this->getIncludeExpression() &&
+                (
+                    ( // if filtering is on, and there's an include pattern test that pattern...
+                        $this->getIncludeExpression() &&
                        preg_match('%' . $this->getIncludeExpression() . '%', $event->getProperty('SUMMARY'))
-                   )
-               ) &&
+                    )
+                ) &&
                !( // if there is an exclude pattern, make sure that this event is NOT excluded
-                   $this->getExcludeExpression() &&
+                    $this->getExcludeExpression() &&
                    preg_match('%' . $this->getExcludeExpression() . '%', $event->getProperty('SUMMARY'))
-               )
-           )
+                )
+            )
         );
     }
 }

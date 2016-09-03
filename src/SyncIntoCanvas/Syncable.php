@@ -53,7 +53,6 @@ abstract class Syncable
     /**
      * Update the MySQL connection
      *
-     * @param PDO $db
      * @throws Exception If `$db` is null
      */
     public static function setDatabase(PDO $database)

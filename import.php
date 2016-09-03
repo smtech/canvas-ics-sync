@@ -73,9 +73,9 @@ function getCanvasContext($canvasUrl)
 function filterEvent($event, $calendarCache)
 {
 
-     return (
-         // include this event if filtering is off...
-         $calendarCache['enable_regexp_filter'] == false ||
+        return (
+            // include this event if filtering is off...
+            $calendarCache['enable_regexp_filter'] == false ||
          (
             (
                 ( // if filtering is on, and there's an include pattern test that pattern...
@@ -186,10 +186,10 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                 // TODO:0 the best window for syncing would be the term of the course in question, right? issue:12
                 // TODO:0 Arbitrarily selecting events in for a year on either side of today's date, probably a better system? issue:12
                 foreach ($ics->selectComponents(
-                    date('Y')-1, // startYear
+                    date('Y') - 1, // startYear
                     date('m'), // startMonth
                     date('d'), // startDay
-                    date('Y')+1, // endYEar
+                    date('Y') + 1, // endYEar
                     date('m'), // endMonth
                     date('d'), // endDay
                     'vevent', // cType
@@ -424,7 +424,9 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
             'The Canvas URL you submitted could not be parsed.<pre>' . $_REQUEST['canvas_url'] . '</pre>',
             NotificationMessage::ERROR
         );
-        if (php_sapi_name() != 'cli') $smarty->display('page.tpl');
+        if (php_sapi_name() != 'cli') {
+            $smarty->display('page.tpl');
+        }
         exit;
     }
 }

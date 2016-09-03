@@ -33,5 +33,5 @@ if (empty($ics)) {
 }
 
 $smarty->assign('ics', $ics);
-$smarty->assign('veventProperties', array('unique' => array('CLASS','CREATED','SUMMARY','DESCRIPTION','DTSTART','X-CURRENT-DTSTART','DTEND','X-CURRENT-DTEND','DURATION','GEO','LAST-MOD','LOCATION','ORGANIZER','PRIORITY','DTSTAMP','SEQ','STATUS','TRANSP','UID','URL','RECURID'),'multiple'=>array('ATTACH','ATTENDEE','CATEGORIES','COMMENT','CONTACT','EXDATE','EXRULE','RSTATUS','RELATED','RESOURCES','RDATE','RRULE','X-PROP')));
+$smarty->assign('veventProperties', array('unique' => array('CLASS', 'CREATED', 'SUMMARY', 'DESCRIPTION', 'DTSTART', 'X-CURRENT-DTSTART', 'DTEND', 'X-CURRENT-DTEND', 'DURATION', 'GEO', 'LAST-MOD', 'LOCATION', 'ORGANIZER', 'PRIORITY', 'DTSTAMP', 'SEQ', 'STATUS', 'TRANSP', 'UID', 'URL', 'RECURID'), 'multiple'=>array('ATTACH', 'ATTENDEE', 'CATEGORIES', 'COMMENT', 'CONTACT', 'EXDATE', 'EXRULE', 'RSTATUS', 'RELATED', 'RESOURCES', 'RDATE', 'RRULE', 'X-PROP')));
 $smarty->display('visualize.tpl');
