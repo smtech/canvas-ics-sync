@@ -13,6 +13,4 @@ class Constants
 
     const VALUE_OVERWRITE_CANVAS_CALENDAR = 'overwrite';
     const VALUE_ENABLE_REGEXP_FILTER = 'enable_filter';
-
-    const CANVAS_INSTANCE_URL = 'CANVAS_INSTANCE_URL';
 }
