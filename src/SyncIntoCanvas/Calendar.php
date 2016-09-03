@@ -4,9 +4,7 @@ namespace smtech\CanvasICSSync\SyncIntoCanvas;
 
 use DateTime;
 use vcalendar;
-use iCalUtilityFunctions;
 use Battis\DataUtilities;
-use Michelf\Markdown;
 
 class Calendar
 {
@@ -157,9 +155,14 @@ class Calendar
      * Generate a unique ID to identify this particular pairing of ICS feed and
      * Canvas calendar
      **/
-    protected function getPairingHash()
+    protected function getId($algorithm = 'md5')
     {
-        return md5($this->getContext()->getCanonicalUrl() . $this->getFeedUrl());
+        return hash($algorithm, $this->getContext()->getCanonicalUrl() . $this->getFeedUrl());
+    }
+
+    public function getContextCode()
+    {
+        return $this->getContext()->getContext() . '_' . $this->getContext()->getId();
     }
 
     public function save()
@@ -246,25 +249,20 @@ class Calendar
         return null;
     }
 
-    public function import(Log $log)
+    public function sync(Log $log)
     {
-        $db = static::getDatabase();
-        $api = static::getApi();
-
-        /*
-         * This will throw an exception if it's not found
-         */
-        $canvasObject = $api->get($this->getContext()->getVerificationUrl());
+        try {
+            $api->get($this->getContext()->getVerificationUrl());
+        } catch (Exception $e) {
+            $this->logThrow(new Exception("Cannot sync calendars without a valid Canvas context"), $log);
+        }
 
         if (!DataUtilities::URLexists($this>getFeedUrl())) {
-            throw new Exception(
-                "Cannot sync calendars with a valid calendar feed"
-            );
+            $this->logThrow(new Exception("Cannot sync calendars with a valid calendar feed"), $log);
         }
 
-        if ($log) {
-            $log->log(static::getSyncTimestamp() . ' sync started', PEAR_LOG_INFO);
-        }
+        $this->log(static::getTimestamp() . ' sync started', $log);
+
         $this->save();
 
         $ics = new vcalendar([
@@ -301,118 +299,46 @@ class Calendar
             foreach ($year as $month => $days) {
                 foreach ($days as $day => $events) {
                     foreach ($events as $i => $_event) {
-                        $event = new Event($_event, $this->getPairingHash());
-                        if ($this->getFilter()->filterEvent($event)) {
-                            $eventCache = Event::load($this->getPairingHash(), $eventHash);
-                            if (empty($eventCache)) {
-                                /* multi-day event instance start times need to be changed to _this_ date */
-                                $start = new DateTime(
-                                    iCalUtilityFunctions::_date2strdate(
-                                        $event->getProperty('DTSTART')
-                                    )
-                                );
-                                $end = new DateTime(
-                                    iCalUtilityFunctions::_date2strdate(
-                                        $event->getProperty('DTEND')
-                                    )
-                                );
-                                if ($event->getProperty('X-RECURRENCE')) {
-                                    $start = new DateTime($event->getProperty('X-CURRENT-DTSTART')[1]);
-                                    $end = new DateTime($event->getProperty('X-CURRENT-DTEND')[1]);
-                                }
-                                $start->setTimeZone(new DateTimeZone(Constants::LOCAL_TIMEZONE));
-                                $end->setTimeZone(new DateTimeZone(Constants::LOCAL_TIMEZONE));
-
-                                try {
-                                    $calendarEvent = $api->post(
-                                        "/calendar_events",
-                                        [
-                                            'calendar_event' => [
-                                                'context_code' => $this->getContext() . "_{$canvasObject['id']}",
-                                                'title' => preg_replace(
-                                                    '%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%',
-                                                    '\\1',
-                                                    strip_tags($event->getProperty('SUMMARY'))
-                                                ),
-                                                'description' => Markdown::defaultTransform(str_replace(
-                                                    '\n',
-                                                    "\n\n",
-                                                    $event->getProperty('DESCRIPTION', 1)
-                                                )),
-                                                'start_at' => $start->format(Constants::CANVAS_TIMESTAMP_FORMAT),
-                                                'end_at' => $end->format(Constants::CANVAS_TIMESTAMP_FORMAT),
-                                                'location_name' => $event->getProperty('LOCATION')
-                                            ]
-                                        ]
-                                    );
-                                } catch (Exception $e) {
-                                    if ($log) {
-                                        $log->log($e->getMessage(), PEAR_LOG_ERR);
-                                    } else {
-                                        throw $e;
-                                    }
-                                }
-
-                                $eventCache = new Event($this->getPairingHash(), $canvasObject['id'], $eventHash);
+                        try {
+                            $event = new Event($_event, $this);
+                            if ($this->getFilter()->filter($event)) {
+                                $event->save();
+                            } else {
+                                $event->delete();
                             }
-                            $eventCache->save();
+                        } catch (Exception $e) {
+                            $this->logThrow($e, $log);
                         }
                     }
                 }
             }
         }
 
-        $findDeletedEvents = $db->prepare(
-            "SELECT *
-                FROM `events`
-                WHERE
-                    `calendar` = :calendar AND
-                    `synced` != :synced
-            "
-        );
-        $deleteCachedEvent = $db->prepare(
-            "DELETE FROM `events` WHERE `id` = :id"
-        );
-        $findDeletedEvents->execute([
-            'calendar' => $this->getPairingHash(),
-            'synced' => static::getSyncTimestamp()
-        ]);
-        if (($deletedEvents = $findDeletedEvents->fetchAll()) !== false) {
-            foreach ($deletedEvents as $eventCache) {
-                try {
-                    $api->delete(
-                        "/calendar_events/{$eventCache['calendar_event[id]']}",
-                        [
-                            'cancel_reason' => getSyncTimestamp(),
-                            /*
-                             * TODO: this feels skeevy -- like the empty string
-                             *     will break
-                             */
-                            'as_user_id' => ($this->getContext()->getContext() == 'user' ? $canvasObject['id'] : '')
-                        ]
-                    );
-                    $deleteCachedEvent->execute($eventCache['id']);
-                } catch (Pest_Unauthorized $e) {
-                    if ($log) {
-                        $log->log(
-                            "calendar_event[{$eventCache['calendar_event[id]']}] no longer exists and will be purged from cache.",
-                            PEAR_LOG_WARN
-                        );
-                    } else {
-                        throw $e;
-                    }
-                } catch (Exception $e) {
-                    if ($log) {
-                        $log->log($e->getMessage(), PEAR_LOG_ERR);
-                    } else {
-                        throw $e;
-                    }
-                }
-            }
+        try {
+            Event::purgeUnmatched(static::getTimestamp(), $this);
+        } catch (Exception $e) {
+            $this->logThrow($e, $log);
         }
 
+        $this->log(static::getTimestamp() . ' sync finished', $log);
+    }
+
+    private function log($message, Log $log, $flag = PEAR_LOG_INFO)
+    {
         if ($log) {
-            $log->log(static::getSyncTimestamp() . ' sync finished', PEAR_LOG_INFO);
+            $log->log($message, $flag);
+        }
+    }
+
+    private function logThrow(
+        Exception $exception,
+        Log $log,
+        $flag = PEAR_LOG_ERR
+    ) {
+        if ($log) {
+            $log->log($e->getMessage() . ': ' . $e->getTraceAsString(), $flag);
+        } else {
+            throw $e;
         }
     }
 }

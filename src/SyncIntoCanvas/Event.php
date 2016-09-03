@@ -3,52 +3,16 @@
 namespace smtech\CanvasICSSync\SyncIntoCanvas;
 
 use vevent;
+use iCalUtilityFunctions;
+use Michelf\Markdown;
 
 class Event extends Syncable
 {
-    /**
-     * Wrapped VEVENT
-     * @var vevent
+    /*
+     * TODO:0 Can we detect the timezone for the Canvas instance and use it? issue:18
      */
-    protected $vevent;
-
-    /**
-     * Calendar ID
-     * @var string
-     */
-    protected $calendar;
-
-    /**
-     * Unique hash identifying this event
-     * @var string
-     */
-    protected $hash;
-
-    protected $canvasId;
-
-    public function __construct($veventOrHash, $calendar, $calendarEventId = null)
-    {
-        if (empty($veventOrHash)) {
-            throw new Exception("Valid VEVENT or hash required");
-        }
-        if (is_a($veventOrHash, vevent::class)) {
-            $this->vevent = $veventOrHash;
-        } else {
-            $this->hash = (string) $veventOrHash;
-        }
-
-        if (empty($calendar)) {
-            throw new Exception("Calendar ID required");
-        }
-        $this->calendar = (string) $calendar;
-
-        $this->getHash();
-    }
-
-    public function getProperty($property)
-    {
-        return (empty($this->vevent) ? false : $this->vevent->getProperty($property));
-    }
+    const LOCAL_TIMEZONE = 'US/Eastern';
+    const CANVAS_TIMESTAMP_FORMAT = 'Y-m-d\TH:iP';
 
     const FIELD_MAP = [
         'calendar_event[title]' => 'SUMMARY',
@@ -63,6 +27,55 @@ class Event extends Syncable
         ],
         'calendar_event[location_name]' => 'LOCATION'
     ];
+
+    /**
+     * VEVENT
+     * @var vevent
+     */
+    protected $vevent;
+
+    /**
+     * Calendar
+     * @var Calendar
+     */
+    protected $calendar;
+
+    /**
+     * Unique hash identifying this version of this event
+     * @var string
+     */
+    protected $hash;
+
+    protected $canvasId;
+
+    public function __construct(vevent $vevent, Calendar $calendar)
+    {
+        if (empty($vevent)) {
+            throw new Exception(
+                'Valid VEVENT required'
+            );
+        }
+        $this->vevent = $vevent;
+
+        if (empty($calendar)) {
+            throw new Exception(
+                'Valid Calendar required'
+            );
+        }
+        $this->calendar = $calendar;
+
+        $this->getHash();
+    }
+
+    public function getProperty($property)
+    {
+        return (empty($this->vevent) ? false : $this->vevent->getProperty($property));
+    }
+
+    public function getCalendar()
+    {
+        return $this->calendar;
+    }
 
     /**
      * Generate a hash of this version of an event to cache in the database
@@ -90,16 +103,12 @@ class Event extends Syncable
         return $this->hash;
     }
 
-    public function isCached()
-    {
-        return !empty(static::load($this->getHash(), $this->calendar));
-    }
-
     public function save()
     {
         $db = static::getDatabase();
+        $api = static::getApi();
 
-        $find = $db->prepare(
+        $select = $db->prepare(
             "SELECT *
                 FROM `events`
                 WHERE
@@ -109,27 +118,132 @@ class Event extends Syncable
         $update = $db->prepare(
             "UPDATE `events`
                 SET
-                    `calendar` = :calendar,
-                    `calendar_event[id]` = :calendar_event_id"
-        )
-    }
-
-    public static function load($id, $calendar)
-    {
-        $find = static::getDatabase()->prepare(
-            "SELECT *
-                FROM `events`
+                    `synced` = :synced
                 WHERE
                     `event_hash` = :event_hash AND
                     `calendar` = :calendar"
         );
-        $find->execute([
-            'event_hash' => $id,
-            'calendar' => $calendar
-        ]);
-        if (($cache = $find->fetch()) !== false) {
-            return new Event($cache['event_hash'], $cache['calendar']);
+        $insert = $db->prepare(
+            "INSERT INTO `events`
+                (
+                    `calendar`,
+                    `calendar_event[id]`,
+                    `event_hash`,
+                    `synced`
+                ) VALUES (
+                    :calendar,
+                    :calendar_event_id,
+                    :event_hash,
+                    :synced
+                )"
+        );
+
+        $params = [
+            'calendar' => $this->getCalendar()->getId(),
+            'event_hash' => $this->getHash(),
+            'synced' => static::getTimestamp()
+        ];
+
+        $select->execute($params);
+        if ($select->fetch() !== false) {
+            $update->execute($params);
+        } else {
+            /*
+             * FIXME: how sure are we of this? issue:14
+             */
+            /*
+             * multi-day event instance start times need to be changed to
+             * _this_ date
+             */
+            $start = new DateTime(
+                iCalUtilityFunctions::_date2strdate(
+                    $this->getProperty('DTSTART')
+                )
+            );
+            $end = new DateTime(
+                iCalUtilityFunctions::_date2strdate(
+                    $this->getProperty('DTEND')
+                )
+            );
+            if ($this->getProperty('X-RECURRENCE')) {
+                $start = new DateTime($this->getProperty('X-CURRENT-DTSTART')[1]);
+                $end = new DateTime($this->getProperty('X-CURRENT-DTEND')[1]);
+            }
+            $start->setTimeZone(new DateTimeZone(self::LOCAL_TIMEZONE));
+            $end->setTimeZone(new DateTimeZone(self::LOCAL_TIMEZONE));
+
+            $calendarEvent = $api->post(
+                "/calendar_events",
+                [
+                    'calendar_event' => [
+                        'context_code' => $this->getCalendar()->getContextCode(),
+                        /*
+                         * TODO this should be configurable issue:5
+                         */
+                        /* removing trailing [TAGS] from event title */
+                        'title' => preg_replace(
+                            '%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%',
+                            '\\1',
+                            strip_tags($this->getProperty('SUMMARY'))
+                        ),
+                        'description' => Markdown::defaultTransform(
+                            str_replace(
+                                '\n',
+                                "\n\n",
+                                $this->getProperty('DESCRIPTION', 1)
+                            )
+                        ),
+                        'start_at' => $start->format(self::CANVAS_TIMESTAMP_FORMAT),
+                        'end_at' => $end->format(self::CANVAS_TIMESTAMP_FORMAT),
+                        'location_name' => $this->getProperty('LOCATION')
+                    ]
+                ]
+            );
+            $params['calendar_event_id'] = $calendarEvent['id'];
+            $insert->execute($params);
         }
-        return null;
+    }
+
+    public static function purgeUnmatched($timestamp, $calendar)
+    {
+        $db = static::getDatabase();
+        $api = static::getApi();
+
+        $findDeletedEvents = $db->prepare(
+            "SELECT *
+                FROM `events`
+                WHERE
+                    `calendar` = :calendar AND
+                    `synced` != :synced"
+        );
+        $deleteCachedEvent = $db->prepare(
+            "DELETE FROM `events` WHERE `id` = :id"
+        );
+
+        $findDeletedEvents->execute([
+            'calendar' => $calendar->getId(),
+            'synced' => $timestamp
+        ]);
+        if (($deletedEvents = $findDeletedEvents->fetchAll()) !== false) {
+            foreach ($deletedEvents as $event) {
+                $params['cancel_reason'] = $timestamp;
+                if ($calendar->getContext()->getContext() == 'user') {
+                    $params['as_user_id'] = $calendar->getContext()->getId();
+                }
+                try {
+                    $api->delete(
+                        "/calendar_events/{$event['calendar_event[id]']}",
+                        $params
+                    );
+                } catch (Pest_Unauthorized $e) {
+                    /*
+                     * Do nothing: an event was cached that had been deleted
+                     * from Canvas -- deleting the cached event is
+                     * inconsequential
+                     */
+                }
+                $deleteCachedEvent->execute($event['id']);
+            }
+        }
     }
 }

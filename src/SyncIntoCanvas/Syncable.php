@@ -30,16 +30,16 @@ abstract class Syncable
      * Unique timestamp for the current sync
      * @var string
      */
-    protected static $syncTimestamp;
+    protected static $timestamp;
 
     /**
      * Generate a unique identifier for this synchronization pass
      **/
-    public static function getSyncTimestamp()
+    public static function getTimestamp()
     {
-        if (empty(static::$syncTimestamp)) {
+        if (empty(static::$timestamp)) {
             $timestamp = new DateTime();
-            static::$syncTimestamp =
+            static::$timestamp =
                 $timestamp->format(Constants::SYNC_TIMESTAMP_FORMAT) .
                 Constants::SEPARATOR . md5(
                     (php_sapi_name() == 'cli' ?
@@ -47,7 +47,7 @@ abstract class Syncable
                     ) . time()
                 );
         }
-        return static::$syncTimestamp;
+        return static::$timestamp;
     }
 
     /**
@@ -105,17 +105,23 @@ abstract class Syncable
     }
 
     /**
-     * Save the syncable object to the MySQL database
+     * Get unique identifier for this object
      *
-     * @return [type] [description]
+     * @return string|int
+     */
+    abstract public function getId();
+
+    /**
+     * Save the syncable object to the database and Canvas
+     *
+     * @return void
      */
     abstract public function save();
 
     /**
-     * Load a syncable object from the MySQL database
+     * Delete the syncable object from the database and Canvas
      *
-     * @param int $id
-     * @return Syncable|null
+     * @return void
      */
-    abstract public static function load($id);
+    abstract public function delete();
 }

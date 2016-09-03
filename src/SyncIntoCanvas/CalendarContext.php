@@ -50,7 +50,11 @@ class CalendarContext
          * TODO: it would probably be better to look up users by email address than URL
          */
         /* get the context (user, course or group) for the canvas URL */
-        if (preg_match('%(https?://)?(' . parse_url($_SESSION[Constants::CANVAS_INSTANCE_URL], PHP_URL_HOST) . '/((about/(\d+))|(courses/(\d+)(/groups/(\d+))?)|(accounts/\d+/groups/(\d+))))%', $canvasUrl, $match)) {
+        if (preg_match('%(https?://)?(' .
+            /*
+             * FIXME not clear that we should be using $_SESSION
+             */
+            parse_url($_SESSION[CANVAS_INSTANCE_URL], PHP_URL_HOST) . '/((about/(\d+))|(courses/(\d+)(/groups/(\d+))?)|(accounts/\d+/groups/(\d+))))%', $canvasUrl, $match)) {
             $this->canonicalUrl = "https://{$match[2]}"; // https://stmarksschool.instructure.com/courses/953
 
             // course or account groups
@@ -101,10 +105,5 @@ class CalendarContext
     public function getVerificationUrl()
     {
         return $this->verificationUrl;
-    }
-
-    public function __toString()
-    {
-        return $this->getContext();
     }
 }
