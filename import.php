@@ -380,7 +380,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 								)
 								VALUES (
 									'{$calendarCache['id']}',
-									'" . $shellArguments[INDEX_SCHEDULE] . "',
+									'{$_REQUEST['sync']}',
 									'" . getSyncTimestamp() . "'
 								)
 						");
