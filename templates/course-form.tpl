@@ -14,7 +14,7 @@
 			<p class="help-block">If you are syncing a Google Calendar, please be sure to use the <code>Private iCal URL</code> for the calendar to allow access to all calendar event information.</p>
 		</div>
 	</div>
-	
+
 	<div class="col-sm-offset-{$formLabelWidth}">
 		<div class="panel-group" id="options-panels" role="tablist" aria-multiselectable="false">
 			<div class="panel panel-default">
@@ -27,13 +27,13 @@
 					<div class="panel-body">
 						<div class="readable-width">
 							<p>Schedule automatic updates from this feed to this course.</p>
-							
+
 							<p><em>Warning:</em> The sync will not overwrite existing events in Canvas (so: no merge). <em>Only</em> changes made in the original ICS calendar feed will be synced. Changes made in Canvas will be ignored (and, if the event is changed in the calendar feed subsequently, overwritten). <em>Only</em> additions made in the calendar feed will be synced. Additions made in Canvas will not be part of the sync (and will never be affected by the sync). <em>Only</em> deletions made in the calendar feed will be synced. Deletions made in Canvas will be ignored (and, if the event is subsequently changed in the calendar feed, it will be resynced to Canvas).</p>
 						</div>
 						<div class="form-group">
-							<label for="schedule" class="control-label col-sm-{$formLabelWidth}">Schedule</label>
+							<label for="sync" class="control-label col-sm-{$formLabelWidth}">Schedule</label>
 							<div class="col-sm-4">
-								<select id="schedule" name="schedule" class="form-control">
+								<select id="sync" name="sync" class="form-control">
 									<option value="once">One-time import only</option>
 									<optgroup label="Recurring">
 										<option value="weekly">Weekly (Saturday at midnight)</option>
@@ -44,7 +44,7 @@
 								</select>
 							</div>
 						</div>
-						
+
 						<div class="form-group">
 							<label for="crontab" class="control-label col-sm-{$formLabelWidth}">Custom schedule</label>
 							<div class="col-sm-{12 - $formLabelWidth}">
@@ -52,11 +52,11 @@
 								<p class="help-block"><em>Warning:</em> Not for the faint of heart! Enter a valid crontab time specification (e.g. <code>0 0 * * *</code>). For more information, <a target=\"_blank\" href=\"http://www.linuxweblog.com/crotab-tutorial\">refer to this tutorial.</a></p>
 							</div>
 						</div>
-						
+
 					</div>
 				</div>
 			</div>
-		
+
 			<div class="panel panel-default">
 				<div class="panel-heading" id="regex-heading" role="button" data-toggle="collapse" href="#regex-panel" aria-expanded="false" aria-controls="regex-panel">
 					<label class="control-label">
@@ -65,11 +65,11 @@
 				</div>
 				<div id="regex-panel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="regex-heading">
 					<div class="panel-body">
-			
+
 						<div class="readable-width">
 							<p><em>Note:</em> The regular expression match is applied to the <em>title</em> of an event <em>only</em>, and the event must both match the include regular expression <em>and</em> not match the exclude regular expression to be included. Note also that the regular expressions are <em>case-sensitive</em>.</p>
 						</div>
-						
+
 						<div class="form-group">
 							<div class="col-sm-offset-{$formLabelWidth}">
 								<div class="checkbox">
@@ -80,7 +80,7 @@
 								</div>
 							</div>
 						</div>
-						
+
 						<div class="form-group">
 							<label for="include_regexp" class="control-label col-sm-{$formLabelWidth}">Include RegEx</label>
 							<div class="col-sm-{12 - $formLabelWidth}">
@@ -88,7 +88,7 @@
 								<p class="help-block">A regular expression to include in the import (e.g. <code>.*</code>).</p>
 							</div>
 						</div>
-			
+
 						<div class="form-group">
 							<label for="exclude_regexp" class="control-label col-sm-{$formLabelWidth}">Exclude RegEx</label>
 							<div class="col-sm-{12 - $formLabelWidth}">
@@ -96,7 +96,7 @@
 								<p class="help-block">A regular expression to exclude from the import (e.g. <code>\[PAR\]</code>).</p>
 							</div>
 						</div>
-			
+
 					</div>
 				</div>
 			</div>
