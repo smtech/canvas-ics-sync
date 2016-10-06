@@ -12,6 +12,8 @@ if (php_sapi_name() == 'cli') {
 require_once 'common.inc.php';
 
 use smtech\CanvasPest\CanvasPest;
+use Battis\Educoder\Pest_Unauthorized;
+use Battis\Educoder\Pest_ClientError;
 use Battis\BootstrapSmarty\NotificationMessage;
 
 /**
@@ -69,22 +71,29 @@ function getCanvasContext($canvasUrl) {
  * This must happen AFTER the event hash has been calculated!
  **/
 function filterEvent($event, $calendarCache) {
-
  	return (
-	 	// include this event if filtering is off...
- 		$calendarCache['enable_regexp_filter'] == false ||
- 		(
-			(
-				( // if filtering is on, and there's an include pattern test that pattern...
-					!empty($calendarCache['include_regexp']) &&
-					preg_match("%{$calendarCache['include_regexp']}%", $event->getProperty('SUMMARY'))
-				)
-			) &&
-			!( // if there is an exclude pattern, make sure that this event is NOT excluded
-				!empty($calendarCache['exclude_regexp']) &&
-				preg_match("%{$calendarCache['exclude_regexp']}%", $event->getProperty('SUMMARY'))
-			)
-		)
+        (
+            // TODO actual multi-day events would be nice
+            // only include first day of multi-day events
+            $event->getProperty('X-OCCURENCE') == false ||
+            preg_match('/^day 1 of \d+$/i', $event->getProperty('X-OCCURENCE')[1])
+        ) &&
+        (
+            // include this event if filtering is off...
+     		$calendarCache['enable_regexp_filter'] == false ||
+     		(
+    			(
+    				( // if filtering is on, and there's an include pattern test that pattern...
+    					!empty($calendarCache['include_regexp']) &&
+    					preg_match("%{$calendarCache['include_regexp']}%", $event->getProperty('SUMMARY'))
+    				)
+    			) &&
+    			!( // if there is an exclude pattern, make sure that this event is NOT excluded
+    				!empty($calendarCache['exclude_regexp']) &&
+    				preg_match("%{$calendarCache['exclude_regexp']}%", $event->getProperty('SUMMARY'))
+    			)
+    		)
+        )
 	);
 }
 
@@ -101,7 +110,13 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 		/* check ICS feed to be sure it exists */
 		if(urlExists($_REQUEST['cal'])) {
 			/* look up the canvas object -- mostly to make sure that it exists! */
-			if ($canvasObject = $api->get($canvasContext['verification_url'])) {
+            $canvasObject = false;
+            try {
+                $canvasObject = $api->get($canvasContext['verification_url']);
+            } catch (Exception $e) {
+                postMessage("Error accessing Canvas object", $canvasContext['verification_url'], NotificationMessage::DANGER);
+            }
+			if ($canvasObject) {
 
 				/* calculate the unique pairing ID of this ICS feed and canvas object */
 				$pairingHash = getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
@@ -194,7 +209,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 					'vevent', // cType
 					false, // flat
 					true, // any
-					false // split
+					true // split
 				) as $year) {
 					foreach ($year as $month => $days) {
 						foreach ($days as $day => $events) {
@@ -240,32 +255,35 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 										$start->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
 										$end->setTimeZone(new DateTimeZone(LOCAL_TIMEZONE));
 
-										$calendarEvent = $api->post("/calendar_events",
-											array(
-												'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
-												'calendar_event[title]' => preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', strip_tags($event->getProperty('SUMMARY'))),
-												'calendar_event[description]' => \Michelf\Markdown::defaultTransform(str_replace('\n', "\n\n", $event->getProperty('DESCRIPTION', 1))),
-												'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
-												'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
-												'calendar_event[location_name]' => $event->getProperty('LOCATION')
-											)
-										);
-
-										$sql->query("
-											INSERT INTO `events`
-												(
-													`calendar`,
-													`calendar_event[id]`,
-													`event_hash`,
-													`synced`
-												)
-												VALUES (
-													'{$calendarCache['id']}',
-													'{$calendarEvent['id']}',
-													'$eventHash',
-													'" . getSyncTimestamp() . "'
-												)
-										");
+                                        try {
+                                            $calendarEvent = $api->post("/calendar_events",
+    											array(
+    												'calendar_event[context_code]' => "{$canvasContext['context']}_{$canvasObject['id']}",
+    												'calendar_event[title]' => preg_replace('%^([^\]]+)(\s*\[[^\]]+\]\s*)+$%', '\\1', strip_tags($event->getProperty('SUMMARY'))),
+    												'calendar_event[description]' => \Michelf\Markdown::defaultTransform(str_replace('\n', "\n\n", $event->getProperty('DESCRIPTION', 1))),
+    												'calendar_event[start_at]' => $start->format(CANVAS_TIMESTAMP_FORMAT),
+    												'calendar_event[end_at]' => $end->format(CANVAS_TIMESTAMP_FORMAT),
+    												'calendar_event[location_name]' => $event->getProperty('LOCATION')
+    											)
+    										);
+                                            $sql->query("
+    											INSERT INTO `events`
+    												(
+    													`calendar`,
+    													`calendar_event[id]`,
+    													`event_hash`,
+    													`synced`
+    												)
+    												VALUES (
+    													'{$calendarCache['id']}',
+    													'{$calendarEvent['id']}',
+    													'$eventHash',
+    													'" . getSyncTimestamp() . "'
+    												)
+    										");
+                                        } catch (Exception $e) {
+                                            postMessage('Error creating calendar event', $eventHash, NotificationMessage::ERROR);
+                                        }
 									}
 								}
 							}
@@ -282,7 +300,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 				");
 				while ($deletedEventCache = $deletedEventsResponse->fetch_assoc()) {
 					try {
-						$deletedEvent = $api->delete("/calendar_events/{$deletedEventCache['calendar_event[id]']}",
+						$deletedEvent = $api->delete("calendar_events/{$deletedEventCache['calendar_event[id]']}",
 							array(
 								'cancel_reason' => getSyncTimestamp(),
 								'as_user_id' => ($canvasContext['context'] == 'user' ? $canvasObject['id'] : '') // TODO: this feels skeevy -- like the empty string will break
