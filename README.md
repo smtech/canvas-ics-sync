@@ -1,5 +1,6 @@
-Canvas ICS Sync
-===============
+# Canvas ICS Sync
+
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/smtech/canvas-ics-sync/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/smtech/canvas-ics-sync/?branch=develop)
 
 ## Important Note
 
