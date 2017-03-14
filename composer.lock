@@ -4,8 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "fa6b1fb73508df59523c19dd20c58715",
-    "content-hash": "cd38e0418548dbf260dca32b7612778f",
+    "content-hash": "43734c21771e69b2f3951f30f1876094",
     "packages": [
         {
             "name": "battis/appmetadata",
@@ -38,7 +37,7 @@
                 }
             ],
             "description": "An object to store app metadata backed by a MySQL table",
-            "time": "2016-07-22 06:29:17"
+            "time": "2016-07-22T06:29:17+00:00"
         },
         {
             "name": "battis/bootstrapsmarty",
@@ -79,7 +78,7 @@
                 }
             ],
             "description": "A wrapper for Smarty to set (and maintain) defaults within a Bootstrap UI environment",
-            "time": "2016-08-01 13:10:10"
+            "time": "2016-08-01T13:10:10+00:00"
         },
         {
             "name": "battis/configxml",
@@ -115,20 +114,20 @@
                 }
             ],
             "description": "Load a configuration XML file for quick use",
-            "time": "2016-05-09 19:47:21"
+            "time": "2016-05-09T19:47:21+00:00"
         },
         {
             "name": "battis/data-utilities",
-            "version": "v0.1.1",
+            "version": "v0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/battis/data-utilities.git",
-                "reference": "da441f33ea687283cc741e47c4b3dfb6c85804a1"
+                "reference": "fe6efd42bec6e6a30e2345d5b71ab57f107fb922"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/battis/data-utilities/zipball/da441f33ea687283cc741e47c4b3dfb6c85804a1",
-                "reference": "da441f33ea687283cc741e47c4b3dfb6c85804a1",
+                "url": "https://api.github.com/repos/battis/data-utilities/zipball/fe6efd42bec6e6a30e2345d5b71ab57f107fb922",
+                "reference": "fe6efd42bec6e6a30e2345d5b71ab57f107fb922",
                 "shasum": ""
             },
             "require-dev": {
@@ -147,11 +146,11 @@
             "authors": [
                 {
                     "name": "Seth Battis",
-                    "email": "SethBattis@stmarksschool.org"
+                    "email": "sethbattis@stmarksschool.org"
                 }
             ],
             "description": "A handful of useful helper functions to process data",
-            "time": "2016-09-02 02:00:58"
+            "time": "2016-10-09T18:59:38+00:00"
         },
         {
             "name": "battis/educoder-pest-fork",
@@ -193,7 +192,7 @@
             ],
             "description": "A proper REST client for PHP.",
             "homepage": "https://github.com/educoder/pest",
-            "time": "2016-03-23 15:38:23"
+            "time": "2016-03-23T15:38:23+00:00"
         },
         {
             "name": "battis/simplecache",
@@ -226,73 +225,23 @@
                 }
             ],
             "description": "Manage a simple cache backed by a MySQL database",
-            "time": "2015-12-17 02:04:27"
-        },
-        {
-            "name": "bower-asset/bootstrap",
-            "version": "v3.3.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/twbs/bootstrap.git",
-                "reference": "16b48259a62f576e52c903c476bd42b90ab22482"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/twbs/bootstrap/zipball/16b48259a62f576e52c903c476bd42b90ab22482",
-                "reference": "16b48259a62f576e52c903c476bd42b90ab22482",
-                "shasum": ""
-            },
-            "require": {
-                "bower-asset/jquery": ">=1.9.1"
-            },
-            "type": "bower-asset-library",
-            "extra": {
-                "bower-asset-main": [
-                    "less/bootstrap.less",
-                    "dist/js/bootstrap.js"
-                ],
-                "bower-asset-ignore": [
-                    "/.*",
-                    "_config.yml",
-                    "CNAME",
-                    "composer.json",
-                    "CONTRIBUTING.md",
-                    "docs",
-                    "js/tests",
-                    "test-infra"
-                ]
-            },
-            "license": [
-                "MIT"
-            ],
-            "description": "The most popular front-end framework for developing responsive, mobile first projects on the web.",
-            "keywords": [
-                "css",
-                "framework",
-                "front-end",
-                "js",
-                "less",
-                "mobile-first",
-                "responsive",
-                "web"
-            ]
+            "time": "2015-12-17T02:04:27+00:00"
         },
         {
             "name": "bower-asset/bootstrap-colorpicker-2.x",
-            "version": "2.3.6",
+            "version": "2.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/itsjavi/bootstrap-colorpicker.git",
-                "reference": "6f216a5eb4f9227c12a858a1bbcf94cada04bf85"
+                "reference": "db978b4d8c3436cdaed6e3a1a065f9f47bb686b1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/itsjavi/bootstrap-colorpicker/zipball/6f216a5eb4f9227c12a858a1bbcf94cada04bf85",
-                "reference": "6f216a5eb4f9227c12a858a1bbcf94cada04bf85",
+                "url": "https://api.github.com/repos/itsjavi/bootstrap-colorpicker/zipball/db978b4d8c3436cdaed6e3a1a065f9f47bb686b1",
+                "reference": "db978b4d8c3436cdaed6e3a1a065f9f47bb686b1",
                 "shasum": ""
             },
             "require": {
-                "bower-asset/bootstrap": ">=2",
                 "bower-asset/jquery": ">=1.10"
             },
             "type": "bower-asset-library",
@@ -315,26 +264,26 @@
         },
         {
             "name": "bower-asset/bootstrap-datepicker-1.x",
-            "version": "1.6.x-dev",
+            "version": "v1.7.0-RC1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/eternicode/bootstrap-datepicker.git",
-                "reference": "ea57ee207173791ecb76479c05b4c2962d4f9587"
+                "url": "https://github.com/uxsolutions/bootstrap-datepicker.git",
+                "reference": "b3c94782ebd804d860a8ea53d89ad4d97a09d852"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eternicode/bootstrap-datepicker/zipball/ea57ee207173791ecb76479c05b4c2962d4f9587",
-                "reference": "ea57ee207173791ecb76479c05b4c2962d4f9587",
+                "url": "https://api.github.com/repos/uxsolutions/bootstrap-datepicker/zipball/b3c94782ebd804d860a8ea53d89ad4d97a09d852",
+                "reference": "b3c94782ebd804d860a8ea53d89ad4d97a09d852",
                 "shasum": ""
             },
             "require": {
-                "bower-asset/jquery": ">=1.7.1"
+                "bower-asset/jquery": ">=1.7.1,<4.0.0"
             },
             "type": "bower-asset-library",
             "extra": {
                 "bower-asset-main": [
                     "dist/css/bootstrap-datepicker3.css",
-                    "dist/js/bootstrap-datepicker.min.js"
+                    "dist/js/bootstrap-datepicker.js"
                 ],
                 "bower-asset-ignore": []
             },
@@ -344,16 +293,16 @@
         },
         {
             "name": "bower-asset/bootstrap-sortable-2.x",
-            "version": "2.0.0",
+            "version": "2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drvic10k/bootstrap-sortable.git",
-                "reference": "29454e4bd762570502c215dbacdaff58018ff62b"
+                "reference": "90a15de789662d4c3161b60baf43d16b2b401a69"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drvic10k/bootstrap-sortable/zipball/29454e4bd762570502c215dbacdaff58018ff62b",
-                "reference": "29454e4bd762570502c215dbacdaff58018ff62b",
+                "url": "https://api.github.com/repos/drvic10k/bootstrap-sortable/zipball/90a15de789662d4c3161b60baf43d16b2b401a69",
+                "reference": "90a15de789662d4c3161b60baf43d16b2b401a69",
                 "shasum": ""
             },
             "require": {
@@ -381,16 +330,16 @@
         },
         {
             "name": "bower-asset/jquery",
-            "version": "dev-master",
+            "version": "3.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jquery/jquery-dist.git",
-                "reference": "f66fe4270f5556c5a42daae1290a39cf1df2eff2"
+                "reference": "1b30f3ad466ebf2714d47eda34dbd7fdf6849fe3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jquery/jquery-dist/zipball/f66fe4270f5556c5a42daae1290a39cf1df2eff2",
-                "reference": "f66fe4270f5556c5a42daae1290a39cf1df2eff2",
+                "url": "https://api.github.com/repos/jquery/jquery-dist/zipball/1b30f3ad466ebf2714d47eda34dbd7fdf6849fe3",
+                "reference": "1b30f3ad466ebf2714d47eda34dbd7fdf6849fe3",
                 "shasum": ""
             },
             "type": "bower-asset-library",
@@ -416,12 +365,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/moment/moment.git",
-                "reference": "986dba9497b7c173760d1d7bc85606c574ed2c44"
+                "reference": "b8a297c1f99b3918f44dd9e3d7bd59379a876ba6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/moment/moment/zipball/986dba9497b7c173760d1d7bc85606c574ed2c44",
-                "reference": "986dba9497b7c173760d1d7bc85606c574ed2c44",
+                "url": "https://api.github.com/repos/moment/moment/zipball/b8a297c1f99b3918f44dd9e3d7bd59379a876ba6",
+                "reference": "b8a297c1f99b3918f44dd9e3d7bd59379a876ba6",
                 "shasum": ""
             },
             "type": "bower-asset-library",
@@ -443,54 +392,15 @@
                     "Gruntfile.js",
                     "Moment.js.nuspec",
                     "package.js",
-                    "package.json"
+                    "package.json",
+                    "ISSUE_TEMPLATE.md",
+                    "typing-tests"
                 ]
             },
             "license": [
                 "MIT"
-            ]
-        },
-        {
-            "name": "educoder/pest",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/educoder/pest.git",
-                "reference": "fcb539e03c03bc925b93004097a268e6fd484dd8"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/educoder/pest/zipball/fcb539e03c03bc925b93004097a268e6fd484dd8",
-                "reference": "fcb539e03c03bc925b93004097a268e6fd484dd8",
-                "shasum": ""
-            },
-            "require": {
-                "lib-curl": "*",
-                "php": ">=5.2"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    ""
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
             ],
-            "authors": [
-                {
-                    "name": "Matt Zukowski",
-                    "email": "matt@zukowski.ca"
-                },
-                {
-                    "name": "Donald Sipe",
-                    "email": "donald.sipe@gmail.com"
-                }
-            ],
-            "description": "A proper REST client for PHP.",
-            "homepage": "https://github.com/educoder/pest",
-            "time": "2014-09-02 15:51:33"
+            "time": "2016-12-04 05:41:33"
         },
         {
             "name": "fxp/composer-asset-plugin",
@@ -498,12 +408,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/fxpio/composer-asset-plugin.git",
-                "reference": "86a2e513dc07cdd640600a51388a50456f382b94"
+                "reference": "1ca583152ce68895dc15e2304549cdf8c758381a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fxpio/composer-asset-plugin/zipball/86a2e513dc07cdd640600a51388a50456f382b94",
-                "reference": "86a2e513dc07cdd640600a51388a50456f382b94",
+                "url": "https://api.github.com/repos/fxpio/composer-asset-plugin/zipball/1ca583152ce68895dc15e2304549cdf8c758381a",
+                "reference": "1ca583152ce68895dc15e2304549cdf8c758381a",
                 "shasum": ""
             },
             "require": {
@@ -511,19 +421,22 @@
                 "php": ">=5.3.3"
             },
             "require-dev": {
-                "composer/composer": "^1.0.0"
+                "composer/composer": "^1.3.0"
             },
             "type": "composer-plugin",
             "extra": {
                 "class": "Fxp\\Composer\\AssetPlugin\\FxpAssetPlugin",
                 "branch-alias": {
-                    "dev-master": "1.2-dev"
+                    "dev-master": "1.3-dev"
                 }
             },
             "autoload": {
                 "psr-4": {
                     "Fxp\\Composer\\AssetPlugin\\": ""
-                }
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -546,7 +459,289 @@
                 "npm",
                 "package"
             ],
-            "time": "2016-09-19 16:00:36"
+            "time": "2017-03-08 12:52:44"
+        },
+        {
+            "name": "guzzlehttp/guzzle",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/guzzle.git",
+                "reference": "03c0747d7f3eace7ef2e69fc2eaa77dc00126548"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/03c0747d7f3eace7ef2e69fc2eaa77dc00126548",
+                "reference": "03c0747d7f3eace7ef2e69fc2eaa77dc00126548",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/promises": "^1.0",
+                "guzzlehttp/psr7": "^1.4",
+                "php": ">=5.5"
+            },
+            "require-dev": {
+                "ext-curl": "*",
+                "phpunit/phpunit": "^4.0",
+                "psr/log": "^1.0"
+            },
+            "suggest": {
+                "psr/log": "Required for using the Log middleware"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "6.2-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/functions_include.php"
+                ],
+                "psr-4": {
+                    "GuzzleHttp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael Dowling",
+                    "email": "mtdowling@gmail.com",
+                    "homepage": "https://github.com/mtdowling"
+                }
+            ],
+            "description": "Guzzle is a PHP HTTP client library",
+            "homepage": "http://guzzlephp.org/",
+            "keywords": [
+                "client",
+                "curl",
+                "framework",
+                "http",
+                "http client",
+                "rest",
+                "web service"
+            ],
+            "time": "2017-03-07 19:22:01"
+        },
+        {
+            "name": "guzzlehttp/promises",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/promises.git",
+                "reference": "a59da6cf61d80060647ff4d3eb2c03a2bc694646"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/promises/zipball/a59da6cf61d80060647ff4d3eb2c03a2bc694646",
+                "reference": "a59da6cf61d80060647ff4d3eb2c03a2bc694646",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.4-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "GuzzleHttp\\Promise\\": "src/"
+                },
+                "files": [
+                    "src/functions_include.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael Dowling",
+                    "email": "mtdowling@gmail.com",
+                    "homepage": "https://github.com/mtdowling"
+                }
+            ],
+            "description": "Guzzle promises library",
+            "keywords": [
+                "promise"
+            ],
+            "time": "2016-12-20 10:07:11"
+        },
+        {
+            "name": "guzzlehttp/psr7",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/psr7.git",
+                "reference": "0d6c7ca039329247e4f0f8f8f6506810e8248855"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/0d6c7ca039329247e4f0f8f8f6506810e8248855",
+                "reference": "0d6c7ca039329247e4f0f8f8f6506810e8248855",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0",
+                "psr/http-message": "~1.0"
+            },
+            "provide": {
+                "psr/http-message-implementation": "1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.4-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "GuzzleHttp\\Psr7\\": "src/"
+                },
+                "files": [
+                    "src/functions_include.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael Dowling",
+                    "email": "mtdowling@gmail.com",
+                    "homepage": "https://github.com/mtdowling"
+                },
+                {
+                    "name": "Tobias Schultze",
+                    "homepage": "https://github.com/Tobion"
+                }
+            ],
+            "description": "PSR-7 message implementation that also provides common utility methods",
+            "keywords": [
+                "http",
+                "message",
+                "request",
+                "response",
+                "stream",
+                "uri",
+                "url"
+            ],
+            "time": "2017-02-27 10:51:17"
+        },
+        {
+            "name": "ircmaxell/random-lib",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ircmaxell/RandomLib.git",
+                "reference": "e9e0204f40e49fa4419946c677eccd3fa25b8cf4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ircmaxell/RandomLib/zipball/e9e0204f40e49fa4419946c677eccd3fa25b8cf4",
+                "reference": "e9e0204f40e49fa4419946c677eccd3fa25b8cf4",
+                "shasum": ""
+            },
+            "require": {
+                "ircmaxell/security-lib": "^1.1",
+                "php": ">=5.3.2"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^1.11",
+                "mikey179/vfsstream": "^1.6",
+                "phpunit/phpunit": "^4.8|^5.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "RandomLib": "lib"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anthony Ferrara",
+                    "email": "ircmaxell@ircmaxell.com",
+                    "homepage": "http://blog.ircmaxell.com"
+                }
+            ],
+            "description": "A Library For Generating Secure Random Numbers",
+            "homepage": "https://github.com/ircmaxell/RandomLib",
+            "keywords": [
+                "cryptography",
+                "random",
+                "random-numbers",
+                "random-strings"
+            ],
+            "time": "2016-09-07T15:52:06+00:00"
+        },
+        {
+            "name": "ircmaxell/security-lib",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ircmaxell/SecurityLib.git",
+                "reference": "f3db6de12c20c9bcd1aa3db4353a1bbe0e44e1b5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ircmaxell/SecurityLib/zipball/f3db6de12c20c9bcd1aa3db4353a1bbe0e44e1b5",
+                "reference": "f3db6de12c20c9bcd1aa3db4353a1bbe0e44e1b5",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2"
+            },
+            "require-dev": {
+                "mikey179/vfsstream": "1.1.*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "SecurityLib": "lib"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anthony Ferrara",
+                    "email": "ircmaxell@ircmaxell.com",
+                    "homepage": "http://blog.ircmaxell.com"
+                }
+            ],
+            "description": "A Base Security Library",
+            "homepage": "https://github.com/ircmaxell/SecurityLib",
+            "time": "2015-03-20T14:31:23+00:00"
         },
         {
             "name": "kigkonsult/icalcreator",
@@ -591,20 +786,83 @@
                 "rfc2445",
                 "rfc5545"
             ],
-            "time": "2015-05-03 00:00:00"
+            "time": "2016-08-16 15:05:30"
         },
         {
-            "name": "michelf/php-markdown",
-            "version": "1.6.0",
+            "name": "league/oauth2-client",
+            "version": "1.4.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/michelf/php-markdown.git",
-                "reference": "156e56ee036505ec637d761ee62dc425d807183c"
+                "url": "https://github.com/thephpleague/oauth2-client.git",
+                "reference": "01f955b85040b41cf48885b078f7fd39a8be5411"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/156e56ee036505ec637d761ee62dc425d807183c",
-                "reference": "156e56ee036505ec637d761ee62dc425d807183c",
+                "url": "https://api.github.com/repos/thephpleague/oauth2-client/zipball/01f955b85040b41cf48885b078f7fd39a8be5411",
+                "reference": "01f955b85040b41cf48885b078f7fd39a8be5411",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "guzzlehttp/guzzle": "~6.0",
+                "ircmaxell/random-lib": "~1.1",
+                "php": ">=5.5.0"
+            },
+            "require-dev": {
+                "jakub-onderka/php-parallel-lint": "0.8.*",
+                "mockery/mockery": "~0.9",
+                "phpunit/phpunit": "~4.0",
+                "satooshi/php-coveralls": "0.6.*",
+                "squizlabs/php_codesniffer": "~2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "League\\OAuth2\\Client\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alex Bilbie",
+                    "email": "hello@alexbilbie.com",
+                    "homepage": "http://www.alexbilbie.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "OAuth 2.0 Client Library",
+            "keywords": [
+                "Authentication",
+                "SSO",
+                "authorization",
+                "identity",
+                "idp",
+                "oauth",
+                "oauth2",
+                "single sign on"
+            ],
+            "time": "2016-07-28T13:20:43+00:00"
+        },
+        {
+            "name": "michelf/php-markdown",
+            "version": "1.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/michelf/php-markdown.git",
+                "reference": "1f51cc520948f66cd2af8cbc45a5ee175e774220"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/1f51cc520948f66cd2af8cbc45a5ee175e774220",
+                "reference": "1f51cc520948f66cd2af8cbc45a5ee175e774220",
                 "shasum": ""
             },
             "require": {
@@ -642,7 +900,51 @@
             "keywords": [
                 "markdown"
             ],
-            "time": "2015-12-24 01:37:31"
+            "time": "2016-10-29T18:58:20+00:00"
+        },
+        {
+            "name": "myclabs/php-enum",
+            "version": "1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/myclabs/php-enum.git",
+                "reference": "e42fa9d2ae5dd660dbd0fb573d94c61e5a0dbb02"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/myclabs/php-enum/zipball/e42fa9d2ae5dd660dbd0fb573d94c61e5a0dbb02",
+                "reference": "e42fa9d2ae5dd660dbd0fb573d94c61e5a0dbb02",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.*",
+                "squizlabs/php_codesniffer": "1.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MyCLabs\\Enum\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP Enum contributors",
+                    "homepage": "https://github.com/myclabs/php-enum/graphs/contributors"
+                }
+            ],
+            "description": "PHP Enum implementation",
+            "homepage": "http://github.com/myclabs/php-enum",
+            "keywords": [
+                "enum"
+            ],
+            "time": "2016-10-09T21:43:05+00:00"
         },
         {
             "name": "pear/log",
@@ -695,7 +997,7 @@
                 "log",
                 "logging"
             ],
-            "time": "2016-04-16 00:49:33"
+            "time": "2016-04-16T00:49:33+00:00"
         },
         {
             "name": "pear/pear_exception",
@@ -750,7 +1052,57 @@
             "keywords": [
                 "exception"
             ],
-            "time": "2015-02-10 20:07:52"
+            "time": "2015-02-10T20:07:52+00:00"
+        },
+        {
+            "name": "psr/http-message",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-message.git",
+                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Message\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "http://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP messages",
+            "homepage": "https://github.com/php-fig/http-message",
+            "keywords": [
+                "http",
+                "http-message",
+                "psr",
+                "psr-7",
+                "request",
+                "response"
+            ],
+            "time": "2016-08-06 14:39:51"
         },
         {
             "name": "smarty/smarty",
@@ -758,12 +1110,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smarty-php/smarty.git",
-                "reference": "caceefc300b77f6bb0e46af9dbfcb51b73fb17c8"
+                "reference": "c7d42e4a327c402897dd587871434888fde1e7a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/caceefc300b77f6bb0e46af9dbfcb51b73fb17c8",
-                "reference": "caceefc300b77f6bb0e46af9dbfcb51b73fb17c8",
+                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/c7d42e4a327c402897dd587871434888fde1e7a9",
+                "reference": "c7d42e4a327c402897dd587871434888fde1e7a9",
                 "shasum": ""
             },
             "require": {
@@ -776,10 +1128,8 @@
                 }
             },
             "autoload": {
-                "classmap": [
-                    "libs/Smarty.class.php",
-                    "libs/SmartyBC.class.php",
-                    "libs/sysplugins/"
+                "files": [
+                    "libs/bootstrap.php"
                 ]
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -805,7 +1155,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2016-09-30 02:10:25"
+            "time": "2016-12-14 21:57:25"
         },
         {
             "name": "smtech/canvaspest",
@@ -841,26 +1191,31 @@
                 }
             ],
             "description": "An extension of Pest to make RESTful queries to the Instructure Canvas API",
-            "time": "2016-08-05 16:39:04"
+            "time": "2016-08-05T16:39:04+00:00"
         },
         {
-            "name": "smtech/oauth-negotiator",
-            "version": "v1.1.1",
+            "name": "smtech/lti-configuration-xml",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/smtech/oauth-negotiator.git",
-                "reference": "fd30bc282254b605e3ff44f75f45546ef2c784c3"
+                "url": "https://github.com/smtech/lti-configuration-xml.git",
+                "reference": "ab9a963bb0f9d4a6689c20af20532d3af7f49a1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smtech/oauth-negotiator/zipball/fd30bc282254b605e3ff44f75f45546ef2c784c3",
-                "reference": "fd30bc282254b605e3ff44f75f45546ef2c784c3",
+                "url": "https://api.github.com/repos/smtech/lti-configuration-xml/zipball/ab9a963bb0f9d4a6689c20af20532d3af7f49a1f",
+                "reference": "ab9a963bb0f9d4a6689c20af20532d3af7f49a1f",
                 "shasum": ""
             },
             "require": {
-                "educoder/pest": "dev-master"
+                "myclabs/php-enum": "~1.0"
             },
             "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "smtech\\LTI\\Configuration\\": "src"
+                }
+            },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "LGPL-3.0"
@@ -871,9 +1226,89 @@
                     "email": "sethbattis@stmarksschool.org"
                 }
             ],
-            "description": "Negotiate an OAuth 2 authentication or API token",
-            "abandoned": "smtech/oauth2-canvaslms",
-            "time": "2015-08-07 16:41:35"
+            "description": "Generate an LTI configuration XML file from parameters",
+            "time": "2016-07-26T18:38:05+00:00"
+        },
+        {
+            "name": "smtech/oauth2-canvaslms",
+            "version": "v1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smtech/oauth2-canvaslms.git",
+                "reference": "aa77bf14cb83c4666db8a110c3ecd74d46c2cece"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smtech/oauth2-canvaslms/zipball/aa77bf14cb83c4666db8a110c3ecd74d46c2cece",
+                "reference": "aa77bf14cb83c4666db8a110c3ecd74d46c2cece",
+                "shasum": ""
+            },
+            "require": {
+                "league/oauth2-client": "~1.0",
+                "php": ">=5.5.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "smtech\\OAuth2\\Client\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Seth Battis",
+                    "email": "sethbattis@stmarksschool.org"
+                }
+            ],
+            "description": "Canvas LMS OAuth 2.0 support for the PHP League's OAuth 2.0 Client",
+            "time": "2016-07-14T18:35:06+00:00"
+        },
+        {
+            "name": "smtech/reflexive-canvas-lti",
+            "version": "v1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smtech/reflexive-canvas-lti.git",
+                "reference": "d3f533ca156a2a45392072ca1243ae2ce727e478"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smtech/reflexive-canvas-lti/zipball/d3f533ca156a2a45392072ca1243ae2ce727e478",
+                "reference": "d3f533ca156a2a45392072ca1243ae2ce727e478",
+                "shasum": ""
+            },
+            "require": {
+                "battis/appmetadata": "~1.0",
+                "battis/configxml": "~1.0",
+                "battis/data-utilities": "~0.1",
+                "myclabs/php-enum": "~1.0",
+                "pear/log": "~1.0",
+                "php": ">=5.6",
+                "smtech/canvaspest": "~1.0",
+                "smtech/lti-configuration-xml": "~1.0",
+                "spvsoftwareproducts/lti_tool_provider": "~2.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "smtech\\ReflexiveCanvasLTI\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Seth Battis",
+                    "email": "sethbattis@stmarksschool.org"
+                }
+            ],
+            "description": "LTI tool provider class that includes the \"reflexive\" reach back into Canvas via the API",
+            "time": "2016-08-18T12:53:20+00:00"
         },
         {
             "name": "smtech/stmarks-colors",
@@ -906,20 +1341,60 @@
                 }
             ],
             "description": "An object-ified, consistent set of hex colors for St. Mark’s projects",
-            "time": "2016-03-17 15:26:18"
+            "time": "2016-03-17T15:26:18+00:00"
         },
         {
-            "name": "smtech/stmarkssmarty",
-            "version": "dev-master",
+            "name": "smtech/stmarks-reflexive-canvas-lti",
+            "version": "v0.2.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/smtech/stmarks-bootstrapsmarty.git",
-                "reference": "ab8c5e142a1562c845eb40fbbc545cc567389692"
+                "url": "https://github.com/smtech/stmarks-reflexive-canvas-lti.git",
+                "reference": "d0e50e1fa145a1fab6b699725853c54b6b781ba1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smtech/stmarks-bootstrapsmarty/zipball/ab8c5e142a1562c845eb40fbbc545cc567389692",
-                "reference": "ab8c5e142a1562c845eb40fbbc545cc567389692",
+                "url": "https://api.github.com/repos/smtech/stmarks-reflexive-canvas-lti/zipball/d0e50e1fa145a1fab6b699725853c54b6b781ba1",
+                "reference": "d0e50e1fa145a1fab6b699725853c54b6b781ba1",
+                "shasum": ""
+            },
+            "require": {
+                "battis/data-utilities": "~0.1",
+                "battis/simplecache": "~1.0",
+                "smtech/oauth2-canvaslms": "~1.0",
+                "smtech/reflexive-canvas-lti": "~1.0",
+                "smtech/stmarkssmarty": "~1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "smtech\\StMarksReflexiveCanvasLTI\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Seth Battis",
+                    "email": "sethbattis@stmarksschool.org"
+                }
+            ],
+            "description": "A toolbox for managing LTI authentication and tool provider development (with St. Mark's templating)",
+            "time": "2016-08-18T13:03:48+00:00"
+        },
+        {
+            "name": "smtech/stmarkssmarty",
+            "version": "v1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smtech/stmarks-bootstrapsmarty.git",
+                "reference": "e481110eed523a1c6dc3e1a8d152785ab909cfc9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smtech/stmarks-bootstrapsmarty/zipball/e481110eed523a1c6dc3e1a8d152785ab909cfc9",
+                "reference": "e481110eed523a1c6dc3e1a8d152785ab909cfc9",
                 "shasum": ""
             },
             "require": {
@@ -944,7 +1419,7 @@
                 }
             ],
             "description": "A standard Smarty install for St. Mark's projects",
-            "time": "2016-08-05 17:01:32"
+            "time": "2016-08-01T13:20:55+00:00"
         },
         {
             "name": "spvsoftwareproducts/LTI_Tool_Provider",
@@ -956,6 +1431,11 @@
                 "shasum": null
             },
             "type": "library",
+            "autoload": {
+                "classmap": [
+                    ""
+                ]
+            },
             "license": [
                 "LGPL-3.0"
             ],
@@ -971,7 +1451,6 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "smtech/stmarkssmarty": 20,
         "kigkonsult/icalcreator": 20
     },
     "prefer-stable": false,

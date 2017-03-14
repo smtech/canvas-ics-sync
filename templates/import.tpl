@@ -2,6 +2,6 @@
 
 {block name="subcontent"}
 
-	{include file="course-form.tpl"}
+	{include file="import-form.tpl"}
 
 {/block}
