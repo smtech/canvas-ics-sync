@@ -11,7 +11,6 @@ if (php_sapi_name() == 'cli') {
 
 require_once 'common.inc.php';
 
-use smtech\CanvasPest\CanvasPest;
 use smtech\ReflexiveCanvasLTI\LTI\ToolProvider;
 use Battis\Educoder\Pest_Unauthorized;
 use Battis\Educoder\Pest_ClientError;
@@ -122,12 +121,10 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                                 '" . getSyncTimestamp() . "',
                                 '" . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER) . "',
                                 " . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER ?
-                                    "'" . $toolbox->getMySQL()->escape_string($_REQUEST['include_regexp']) . "'" :
-                                    'NULL'
+                                    "'" . $toolbox->getMySQL()->escape_string($_REQUEST['include_regexp']) . "'" : 'NULL'
                                 ) . ",
                                 " . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER ?
-                                    "'" . $toolbox->getMySQL()->escape_string($_REQUEST['exclude_regexp']) . "'" :
-                                    'NULL'
+                                    "'" . $toolbox->getMySQL()->escape_string($_REQUEST['exclude_regexp']) . "'" : 'NULL'
                                 ) . "
                             )
                     ");
@@ -159,10 +156,10 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                  * side of today's date, probably a better system?
                  */
                 foreach ($ics->selectComponents(
-                    date('Y')-1, // startYear
+                    date('Y') - 1, // startYear
                     date('m'), // startMonth
                     date('d'), // startDay
-                    date('Y')+1, // endYEar
+                    date('Y') + 1, // endYEar
                     date('m'), // endMonth
                     date('d'), // endDay
                     'vevent', // cType
