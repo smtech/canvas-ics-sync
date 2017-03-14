@@ -125,7 +125,7 @@ class Toolbox extends \smtech\StMarksReflexiveCanvasLTI\Toolbox
      **/
     public function filterEvent($event, $calendarCache)
     {
-         return (
+            return (
             (
                 // TODO actual multi-day events would be nice
                 // only include first day of multi-day events
@@ -134,7 +134,7 @@ class Toolbox extends \smtech\StMarksReflexiveCanvasLTI\Toolbox
             ) &&
             (
                 // include this event if filtering is off...
-                 $calendarCache['enable_regexp_filter'] == false ||
+                    $calendarCache['enable_regexp_filter'] == false ||
                  (
                     (
                         ( // if filtering is on, and there's an include pattern test that pattern...

@@ -94,7 +94,7 @@ function getPairingHash($icsUrl, $canvasContext)
 $FIELD_MAP = array(
     'calendar_event[title]' => 'SUMMARY',
     'calendar_event[description]' => 'DESCRIPTION',
-    'calendar_event[start_at]' => array (
+    'calendar_event[start_at]' => array(
         0 => 'X-CURRENT-DTSTART',
         1 => 'DTSTART'
     ),
