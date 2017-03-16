@@ -20,18 +20,5 @@ $schedulesResponse = $toolbox->mysql_query("
 ");
 
 while ($schedule = $schedulesResponse->fetch_assoc()) {
-    $calendarResponse = $toolbox->mysql_query("
-		SELECT *
-			FROM `calendars`
-			WHERE
-				`id` = '{$schedule['calendar']}'
-	");
-    if ($calendar = $calendarResponse->fetch_assoc()) {
-        echo shell_exec(
-            'php ' . __DIR__ . '/import.php ' .
-            $calendar['ics_url'] . ' ' .
-            $calendar['canvas_url'] . ' ' .
-            $schedule['id']
-        );
-    }
+    shell_exec('php ' . __DIR__ . '/import.php ' . $schedule['calendar']);
 }

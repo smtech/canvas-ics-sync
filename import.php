@@ -1,11 +1,7 @@
 <?php
 
 if (php_sapi_name() == 'cli') {
-    // TODO there is a more streamlined way of doing this that escapes me just this second
-    $_REQUEST['cal'] = $argv[1];
-    $_REQUEST['canvas_url'] = $argv[2];
-    $_REQUEST['schedule'] = $argv[3];
-
+    $pairingHash = $argv[1];
     define('IGNORE_LTI', true);
 }
 
@@ -36,6 +32,17 @@ use Battis\BootstrapSmarty\NotificationMessage;
  * of looking everything up in the API) check and re-sync modified events too
  */
 
+/*
+ * pretend we have the interactive parameters if we were passed a pairing hash
+ * by sync.php
+ */
+if (!empty($pairingHash)) {
+    $calendars = $toolbox->mysql_query("SELECT * FROM `calendars` WHERE `id` = '$pairingHash'");
+    $calendar = $calendars->fetch_assoc();
+    $_REQUEST['cal'] = $calendar['ics_url'];
+    $_REQUEST['canvas_url'] = $calendar['canvas_url'];
+}
+
 /* do we have the vital information (an ICS feed and a URL to a canvas object)? */
 if (empty($_REQUEST['canvas_url'])) {
     $_REQUEST['canvas_url'] =
@@ -58,8 +65,13 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                 );
             }
             if ($canvasObject) {
-                /* calculate the unique pairing ID of this ICS feed and canvas object */
-                $pairingHash = $toolbox->getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
+                /*
+                 * calculate the unique pairing ID of this ICS feed and canvas
+                 * object, if we don't already have one
+                 */
+                if (empty($pairingHash)) {
+                    $pairingHash = $toolbox->getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
+                }
                 $log = Log::singleton('file', __DIR__ . "/logs/$pairingHash.log");
                 $toolbox->postMessage('Sync started', $toolbox->getSyncTimestamp(), NotificationMessage::INFO);
 
