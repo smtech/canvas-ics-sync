@@ -4,6 +4,8 @@ define('IGNORE_LTI', true);
 
 require_once('common.inc.php');
 
+$toolbox->log("Checking {$argv[1]} schedule...");
+
 /*
  * FIXME: should filter so that the syncs for the server we're running against
  * (INDEX_WEB_PATH) are called (or is that already happening?)

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "43734c21771e69b2f3951f30f1876094",
+    "content-hash": "330ca71636bf1f0ada42347150d3d2b4",
     "packages": [
         {
             "name": "battis/appmetadata",
@@ -1268,16 +1268,16 @@
         },
         {
             "name": "smtech/reflexive-canvas-lti",
-            "version": "v1.0.4",
+            "version": "v1.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/smtech/reflexive-canvas-lti.git",
-                "reference": "d3f533ca156a2a45392072ca1243ae2ce727e478"
+                "reference": "8a39ee228f003602ed42a1f7216f7feead1930f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smtech/reflexive-canvas-lti/zipball/d3f533ca156a2a45392072ca1243ae2ce727e478",
-                "reference": "d3f533ca156a2a45392072ca1243ae2ce727e478",
+                "url": "https://api.github.com/repos/smtech/reflexive-canvas-lti/zipball/8a39ee228f003602ed42a1f7216f7feead1930f2",
+                "reference": "8a39ee228f003602ed42a1f7216f7feead1930f2",
                 "shasum": ""
             },
             "require": {
@@ -1308,7 +1308,7 @@
                 }
             ],
             "description": "LTI tool provider class that includes the \"reflexive\" reach back into Canvas via the API",
-            "time": "2016-08-18T12:53:20+00:00"
+            "time": "2017-03-16T14:54:01+00:00"
         },
         {
             "name": "smtech/stmarks-colors",
@@ -1345,16 +1345,16 @@
         },
         {
             "name": "smtech/stmarks-reflexive-canvas-lti",
-            "version": "v0.2.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/smtech/stmarks-reflexive-canvas-lti.git",
-                "reference": "d0e50e1fa145a1fab6b699725853c54b6b781ba1"
+                "reference": "30e51247051128a176d74a293896c377350efd9f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smtech/stmarks-reflexive-canvas-lti/zipball/d0e50e1fa145a1fab6b699725853c54b6b781ba1",
-                "reference": "d0e50e1fa145a1fab6b699725853c54b6b781ba1",
+                "url": "https://api.github.com/repos/smtech/stmarks-reflexive-canvas-lti/zipball/30e51247051128a176d74a293896c377350efd9f",
+                "reference": "30e51247051128a176d74a293896c377350efd9f",
                 "shasum": ""
             },
             "require": {
@@ -1381,7 +1381,7 @@
                 }
             ],
             "description": "A toolbox for managing LTI authentication and tool provider development (with St. Mark's templating)",
-            "time": "2016-08-18T13:03:48+00:00"
+            "time": "2017-03-16 14:30:58"
         },
         {
             "name": "smtech/stmarkssmarty",
@@ -1451,6 +1451,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "smtech/stmarks-reflexive-canvas-lti": 20,
         "kigkonsult/icalcreator": 20
     },
     "prefer-stable": false,

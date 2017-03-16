@@ -51,7 +51,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
             try {
                 $canvasObject = $toolbox->api_get($canvasContext['verification_url']);
             } catch (Exception $e) {
-                postMessage(
+                $toolbox->postMessage(
                     "Error accessing Canvas object",
                     $canvasContext['verification_url'],
                     NotificationMessage::DANGER
@@ -59,9 +59,9 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
             }
             if ($canvasObject) {
                 /* calculate the unique pairing ID of this ICS feed and canvas object */
-                $pairingHash = getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
+                $pairingHash = $toolbox->getPairingHash($_REQUEST['cal'], $canvasContext['canonical_url']);
                 $log = Log::singleton('file', __DIR__ . "/logs/$pairingHash.log");
-                postMessage('Sync started', getSyncTimestamp(), NotificationMessage::INFO);
+                $toolbox->postMessage('Sync started', $toolbox->getSyncTimestamp(), NotificationMessage::INFO);
 
                 /* tell users that it's started and to cool their jets */
                 if (php_sapi_name() != 'cli') {
@@ -76,7 +76,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                 /* parse the ICS feed */
                 $ics = new vcalendar(
                     array(
-                        'unique_id' => $metadata['APP_ID'],
+                        'unique_id' => $toolbox->config('TOOL_ID'),
                         'url' => $_REQUEST['cal']
                     )
                 );
@@ -96,7 +96,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                     $toolbox->mysql_query("
                         UPDATE `calendars`
                             SET
-                                `synced` = '" . getSyncTimestamp() . "'
+                                `synced` = '" . $toolbox->getSyncTimestamp() . "'
                             WHERE
                                 `id` = '$pairingHash'
                     ");
@@ -118,7 +118,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                                 '" . $toolbox->getMySQL()->escape_string($ics->getProperty('X-WR-CALNAME')[1]) . "',
                                 '{$_REQUEST['cal']}',
                                 '{$canvasContext['canonical_url']}',
-                                '" . getSyncTimestamp() . "',
+                                '" . $toolbox->getSyncTimestamp() . "',
                                 '" . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER) . "',
                                 " . ($_REQUEST['enable_regexp_filter'] == VALUE_ENABLE_REGEXP_FILTER ?
                                     "'" . $toolbox->getMySQL()->escape_string($_REQUEST['include_regexp']) . "'" : 'NULL'
@@ -171,7 +171,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                         foreach ($days as $day => $events) {
                             foreach ($events as $i => $event) {
                                 /* does this event already exist in Canvas? */
-                                $eventHash = getEventHash($event);
+                                $eventHash = $toolbox->getEventHash($event);
 
                                 /* if the event should be included... */
                                 if ($toolbox->filterEvent($event, $calendarCache)) {
@@ -192,7 +192,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                                         $toolbox->mysql_query("
                                             UPDATE `events`
                                                 SET
-                                                    `synced` = '" . getSyncTimestamp() . "'
+                                                    `synced` = '" . $toolbox->getSyncTimestamp() . "'
                                                 WHERE
                                                     `id` = '{$eventCache['id']}'
                                         ");
@@ -237,11 +237,11 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                                                         '{$calendarCache['id']}',
                                                         '{$calendarEvent['id']}',
                                                         '$eventHash',
-                                                        '" . getSyncTimestamp() . "'
+                                                        '" . $toolbox->getSyncTimestamp() . "'
                                                     )
                                             ");
                                         } catch (Exception $e) {
-                                            postMessage(
+                                            $toolbox->postMessage(
                                                 'Error creating calendar event',
                                                 $eventHash,
                                                 NotificationMessage::ERROR
@@ -259,14 +259,14 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                     SELECT * FROM `events`
                         WHERE
                             `calendar` = '{$calendarCache['id']}' AND
-                            `synced` != '" . getSyncTimestamp() . "'
+                            `synced` != '" . $toolbox->getSyncTimestamp() . "'
                 ");
                 while ($deletedEventCache = $deletedEventsResponse->fetch_assoc()) {
                     try {
                         $deletedEvent = $toolbox->api_delete(
                             "calendar_events/{$deletedEventCache['calendar_event[id]']}",
                             array(
-                                'cancel_reason' => getSyncTimestamp(),
+                                'cancel_reason' => $toolbox->getSyncTimestamp(),
                                 'as_user_id' => ($canvasContext['context'] == 'user' ? $canvasObject['id'] : '') // TODO: this feels skeevy -- like the empty string will break
                             )
                         );
@@ -274,13 +274,13 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                         /* if the event has been deleted in Canvas, we'll get an error when
                            we try to delete it a second time. We still need to delete it from
                            our cache database, however */
-                        postMessage(
+                        $toolbox->postMessage(
                             'Cache out-of-sync',
                             "calendar_event[{$deletedEventCache['calendar_event[id]']}] no longer exists and will be purged from cache.",
                             NotificationMessage::INFO
                         );
                     } catch (Pest_ClientError $e) {
-                        postMessage(
+                        $toolbox->postMessage(
                             'API Client Error',
                             '<pre>' . print_r(array(
                                 'Status' => $PEST->lastStatus(),
@@ -308,7 +308,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                     $toolbox->mysql_query("
                         UPDATE `schedules`
                             SET
-                                `synced` = '" . getSyncTimestamp() . "'
+                                `synced` = '" . $toolbox->getSyncTimestamp() . "'
                             WHERE
                                 `id` = '{$_REQUEST['schedule']}'
                     ");
@@ -341,17 +341,17 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                             /* we're the last one, delete it from crontab */
                             if ($schedulesResponse->num_rows == 0) {
                                 $crontabs = preg_replace("%^.*{$schedule['schedule']}.*" . PHP_EOL . '%', '', shell_exec('crontab -l'));
-                                $filename = md5(getSyncTimestamp()) . '.txt';
+                                $filename = md5($toolbox->getSyncTimestamp()) . '.txt';
                                 file_put_contents("/tmp/$filename", $crontabs);
                                 shell_exec("crontab /tmp/$filename");
-                                postMessage('Unused schedule', "removed schedule '{$schedule['schedule']}' from crontab", NotificationMessage::INFO);
+                                $toolbox->postMessage('Unused schedule', "removed schedule '{$schedule['schedule']}' from crontab", NotificationMessage::INFO);
                             }
 
                             $toolbox->mysql_query("
                                 UPDATE `schedules`
                                     SET
                                         `schedule` = '" . $shellArguments[INDEX_SCHEDULE] . "',
-                                        `synced` = '" . getSyncTimestamp() . "'
+                                        `synced` = '" . $toolbox->getSyncTimestamp() . "'
                                     WHERE
                                         `calendar` = '{$calendarCache['id']}'
                             ");
@@ -367,7 +367,7 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                                 VALUES (
                                     '{$calendarCache['id']}',
                                     '" . $_REQUEST['sync'] . "',
-                                    '" . getSyncTimestamp() . "'
+                                    '" . $toolbox->getSyncTimestamp() . "'
                                 )
                         ");
                     }
@@ -381,10 +381,10 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
 
                 // TODO: deal with messaging based on context
 
-                postMessage('Finished sync', getSyncTimestamp(), NotificationMessage::INFO);
+                $toolbox->postMessage('Finished sync', $toolbox->getSyncTimestamp(), NotificationMessage::INFO);
                 exit;
             } else {
-                postMessage(
+                $toolbox->postMessage(
                     'Canvas Object  Not Found',
                     'The object whose URL you submitted could not be found.<pre>' . print_r(array(
                         'Canvas URL' => $_REQUEST['canvas_url'],
@@ -395,14 +395,14 @@ if (isset($_REQUEST['cal']) && isset($_REQUEST['canvas_url'])) {
                 );
             }
         } else {
-            postMessage(
+            $toolbox->postMessage(
                 'ICS feed  Not Found',
                 'The calendar whose URL you submitted could not be found.<pre>' . $_REQUEST['cal'] . '</pre>',
                 NotificationMessage::ERROR
             );
         }
     } else {
-        postMessage(
+        $toolbox->postMessage(
             'Invalid Canvas URL',
             'The Canvas URL you submitted could not be parsed.<pre>' . $_REQUEST['canvas_url'] . '</pre>',
             NotificationMessage::ERROR

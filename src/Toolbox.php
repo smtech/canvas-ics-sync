@@ -3,6 +3,8 @@ namespace smtech\CanvasICSSync;
 
 use smtech\LTI\Configuration\Option;
 use Battis\HierarchicalSimpleCache;
+use Battis\BootstrapSmarty\NotificationMessage;
+use DateTime;
 
 /**
  * St. Marks Reflexive Canvas LTI Example toolbox
@@ -15,6 +17,22 @@ use Battis\HierarchicalSimpleCache;
  */
 class Toolbox extends \smtech\StMarksReflexiveCanvasLTI\Toolbox
 {
+    private $FIELD_MAP = array(
+        'calendar_event[title]' => 'SUMMARY',
+        'calendar_event[description]' => 'DESCRIPTION',
+        'calendar_event[start_at]' => array(
+            0 => 'X-CURRENT-DTSTART',
+            1 => 'DTSTART'
+        ),
+        'calendar_event[end_at]' => array(
+            0 => 'X-CURRENT-DTEND',
+            1 => 'DTEND'
+        ),
+        'calendar_event[location_name]' => 'LOCATION'
+    );
+
+    private $SYNC_TIMESTAMP = null;
+
     /**
      * Configure course and account navigation placements
      *
@@ -149,5 +167,63 @@ class Toolbox extends \smtech\StMarksReflexiveCanvasLTI\Toolbox
                 )
             )
         );
+    }
+
+    public function postMessage($subject, $body, $flag = NotificationMessage::INFO)
+    {
+        global $toolbox;
+        if (php_sapi_name() != 'cli') {
+            $this->smarty_addMessage($subject, $body, $flag);
+        } else {
+            $logEntry = "[$flag] $subject: $body";
+            $this->log($logEntry);
+        }
+    }
+
+    /**
+     * Generate a unique ID to identify this particular pairing of ICS feed and
+     * Canvas calendar
+     **/
+    public function getPairingHash($icsUrl, $canvasContext)
+    {
+        return md5($icsUrl . $canvasContext . $this->config('CANVAS_INSTANCE_URL'));
+    }
+
+    /**
+     * Generate a hash of this version of an event to cache in the database
+     **/
+    public function getEventHash($event)
+    {
+        $blob = '';
+        foreach ($this->FIELD_MAP as $field) {
+            if (is_array($field)) {
+                foreach ($field as $option) {
+                    if (!empty($property = $event->getProperty($option))) {
+                        $blob .= serialize($property);
+                        break;
+                    }
+                }
+            } else {
+                if (!empty($property = $event->getProperty($field))) {
+                    $blob .= serialize($property);
+                }
+            }
+        }
+        return md5($blob);
+    }
+
+    /**
+     * Generate a unique identifier for this synchronization pass
+     **/
+    public function getSyncTimestamp()
+    {
+        if ($this->SYNC_TIMESTAMP) {
+            return $this->SYNC_TIMESTAMP;
+        } else {
+            $timestamp = new DateTime();
+            $this->SYNC_TIMESTAMP = $timestamp->format(SYNC_TIMESTAMP_FORMAT) . SEPARATOR .
+                md5((php_sapi_name() == 'cli' ? 'cli' : $_SERVER['REMOTE_ADDR']) . time());
+            return $this->SYNC_TIMESTAMP;
+        }
     }
 }
