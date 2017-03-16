@@ -14,7 +14,7 @@
         </handlers>
 
         <!-- Where is the log file for the tool provider? (path relative to this XML file) -->
-        <log>../canvas-ics-sync.log</log>
+        <log>/var/log/smtech/canvas-ics-sync.log</log>
     </tool>
 
     <!-- Credentials for MySQL database -->
