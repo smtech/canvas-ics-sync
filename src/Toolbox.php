@@ -31,6 +31,8 @@ class Toolbox extends \smtech\StMarksReflexiveCanvasLTI\Toolbox
         'calendar_event[location_name]' => 'LOCATION'
     );
 
+    private $LOCK_FILE_EXPIRATION = 60 * 60; /* 1 hour */
+
     private $SYNC_TIMESTAMP = null;
 
     /**
@@ -225,5 +227,25 @@ class Toolbox extends \smtech\StMarksReflexiveCanvasLTI\Toolbox
                 md5((php_sapi_name() == 'cli' ? 'cli' : $_SERVER['REMOTE_ADDR']) . time());
             return $this->SYNC_TIMESTAMP;
         }
+    }
+
+    protected function lockFileName($pairingHash)
+    {
+        return "$pairingHash.lock";
+    }
+
+    public function lock($pairingHash)
+    {
+        if (empty($this->config($this->lockFileName($pairingHash))) ||
+            strtotime($this->config($this->lockFileName($pairingHash))) < time() - $this->LOCK_FILE_EXPIRATION) {
+            $this->config($this->lockFileName($pairingHash), date('c'));
+            return true;
+        }
+        return false;
+    }
+
+    public function unlock($pairingHash)
+    {
+        $this->config($this->lockFileName($pairingHash), false);
     }
 }
