@@ -1,5 +1,6 @@
 # Canvas ICS Sync
 
+[![Latest Version](https://img.shields.io/packagist/v/smtech/canvas-ics-sync.svg)](https://packagist.org/packages/smtech/canvas-ics-sync)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/smtech/canvas-ics-sync/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/smtech/canvas-ics-sync/?branch=develop)
 
 ## Important Note
